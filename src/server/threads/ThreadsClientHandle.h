@@ -1,5 +1,5 @@
-#ifndef __THREADS_TCP_SERVER_H__
-#define __THREADS_TCP_SERVER_H__
+#ifndef __THREADS_CLIENT_HANDEL_H__
+#define __THREADS_CLIENT_HANDEL_H__
 
 #include <memory>
 #include <string.h>
@@ -53,24 +53,5 @@ protected:
     std::queue<std::shared_ptr<std::string>> mMessageQueue;
 };
 typedef std::shared_ptr<ThreadsClientHandle> ThreadsClientHandlePtr;
-
-class ThreadsTcpServer : public TcpServer
-{
-public:
-    explicit ThreadsTcpServer(uint16_t port)
-        : TcpServer(port)
-    {}
-
-    explicit ThreadsTcpServer(const std::string ip, uint16_t port)
-        : TcpServer(ip, port)
-    {}
-
-    virtual ~ThreadsTcpServer()
-    {}
-
-protected:
-    virtual void handleClient(SocketContextPtr context) = 0;
-};
-typedef std::shared_ptr<ThreadsTcpServer> ThreadsTcpServerPtr;
 
 #endif

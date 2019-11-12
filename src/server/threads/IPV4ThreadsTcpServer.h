@@ -1,7 +1,7 @@
 #ifndef __IPV4_THREADS_TCP_SERVER_H__
 #define __IPV4_THREADS_TCP_SERVER_H__
 
-#include "ThreadsTcpServer.h"
+#include "ThreadsClientHandle.h"
 
 class IPV4SocketContext : public SocketContext
 {
@@ -34,15 +34,15 @@ protected:
 };
 typedef std::shared_ptr<IPV4ThreadsClientHandle> IPV4ThreadsClientHandleHandlePtr;
 
-class IPV4ThreadsTcpServer : public ThreadsTcpServer
+class IPV4ThreadsTcpServer : public TcpServer
 {
 public:
     explicit IPV4ThreadsTcpServer(uint16_t port)
-        : ThreadsTcpServer(port)
+        : TcpServer(port)
     {}
 
     explicit IPV4ThreadsTcpServer(const std::string ip, uint16_t port)
-        : ThreadsTcpServer(ip, port)
+        : TcpServer(ip, port)
     {}
 
     virtual ~IPV4ThreadsTcpServer()
