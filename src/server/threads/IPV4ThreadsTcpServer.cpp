@@ -51,7 +51,7 @@ void IPV4ThreadsClientHandle::handleReadEvent(void)
             break;
         }
 
-        std::shared_ptr<std::string> recv_msg(new std::string(recv_msg_buf));
+        std::shared_ptr<std::string> recv_msg(new std::string(recv_msg_buf, rb));
 
         std::cout << "server: recv from address:[" << inet_ntoa(socket_context->mClientAddr.sin_addr) << "], "
             << "port:[" << std::dec << ntohs(socket_context->mClientAddr.sin_port) << "], "
