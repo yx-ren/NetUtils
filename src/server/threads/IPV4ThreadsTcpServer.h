@@ -1,19 +1,9 @@
 #ifndef __IPV4_THREADS_TCP_SERVER_H__
 #define __IPV4_THREADS_TCP_SERVER_H__
 
+#include <server/TcpServer.h>
+#include <server/SocketContext.h>
 #include "ThreadsClientHandle.h"
-
-class IPV4SocketContext : public SocketContext
-{
-public:
-    IPV4SocketContext(const struct sockaddr_in& addr, int fd)
-        : SocketContext(fd)
-        , mClientAddr(addr)
-    {}
-
-    struct sockaddr_in mClientAddr;
-};
-typedef std::shared_ptr<IPV4SocketContext> IPV4SocketContextPtr;
 
 class IPV4ThreadsClientHandle : public ThreadsClientHandle
 {

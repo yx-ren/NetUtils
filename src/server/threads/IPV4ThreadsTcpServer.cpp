@@ -3,9 +3,6 @@
 #include <iostream>
 #include <string.h>
 
-#define BACK_LOG                10
-#define MAX_MESSAGEBUFF_LEN     0xffff
-
 void IPV4ThreadsClientHandle::doWork(void)
 {
     std::thread threadHandleRead(std::bind(&IPV4ThreadsClientHandle::handleReadEvent, this));

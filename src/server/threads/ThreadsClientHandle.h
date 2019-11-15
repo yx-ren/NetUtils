@@ -6,7 +6,6 @@
 #include <list>
 #include <queue>
 #include <thread>
-#include <server/TcpServer.h>
 #if defined(WIN32) || defined(_WIN32)
 #include <mutex>
 #else
@@ -25,6 +24,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #endif
+
+#include <server/SocketContext.h>
 
 class ThreadsClientHandle
 {

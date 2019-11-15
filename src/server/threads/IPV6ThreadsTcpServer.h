@@ -1,19 +1,9 @@
 #ifndef __IPV6_THREADS_TCP_SERVER_H__
 #define __IPV6_THREADS_TCP_SERVER_H__
 
+#include <server/TcpServer.h>
+#include <server/SocketContext.h>
 #include "ThreadsClientHandle.h"
-
-class IPV6SocketContext : public SocketContext
-{
-public:
-    IPV6SocketContext(const struct sockaddr_in6& addr, int fd)
-        : SocketContext(fd)
-        , mClientAddr(addr)
-    {}
-
-    struct sockaddr_in6 mClientAddr;
-};
-typedef std::shared_ptr<IPV6SocketContext> IPV6SocketContextPtr;
 
 class IPV6ThreadsClientHandle : public ThreadsClientHandle
 {

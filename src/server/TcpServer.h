@@ -1,7 +1,9 @@
 #ifndef __TCP_SERVER_H__
 #define __TCP_SERVER_H__
 
-#define INVALID_FD    -1
+#define INVALID_FD              -1
+#define BACK_LOG                0xff
+#define MAX_MESSAGEBUFF_LEN     0xffff
 #if (defined WIN32) || (defined _WIN32)
 #define GET_LAST_SOCKET_ERROR WSAGetLastError()
 #else
@@ -11,19 +13,6 @@
 #include <string>
 #include <memory>
 
-class SocketContext
-{
-public:
-    explicit SocketContext(int fd)
-        : mClientFd(fd)
-    {}
-
-    virtual ~SocketContext()
-    {}
-
-    int mClientFd;
-};
-typedef std::shared_ptr<SocketContext> SocketContextPtr;
 
 class TcpServer
 {
