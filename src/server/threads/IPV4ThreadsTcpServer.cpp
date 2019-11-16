@@ -67,7 +67,7 @@ void IPV4ThreadsClientHandle::handleReadEvent(void)
         mCond.notify_one();
     }
 
-    close(socket_context->mClientFd);
+    CLOSE_SOCKET(socket_context->mClientFd);
     socket_context->mClientFd = INVALID_FD;
     mCond.notify_one();
 
@@ -139,7 +139,7 @@ void IPV4ThreadsClientHandle::handleWriteEvent(void)
         }
     }
 
-    close(socket_context->mClientFd);
+    CLOSE_SOCKET(socket_context->mClientFd);
     socket_context->mClientFd = INVALID_FD;
 
     return;
