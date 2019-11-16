@@ -107,7 +107,8 @@ void IPV4ThreadsClientHandle::handleWriteEvent(void)
         size_t total_send = 0;
         while (total_send < send_msg->size())
         {
-            size_t sb = send(socket_context->mClientFd, send_msg->data() + total_send, send_msg->size() - total_send, 0);
+            size_t sb = send(socket_context->mClientFd,
+                send_msg->data() + total_send, send_msg->size() - total_send, MSG_NOSIGNAL);
             if (sb < 0)
             {
 #ifndef WIN32
@@ -119,12 +120,18 @@ void IPV4ThreadsClientHandle::handleWriteEvent(void)
 #endif
                 std::cerr << "server: call send() failed, "
                     << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
+
+                close(socket_context->mClientFd);
+                socket_context->mClientFd = INVALID_FD;
                 break;
             }
             else if (sb == 0)
             {
                 std::cerr << "server: call send() failed, "
                     << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
+
+                close(socket_context->mClientFd);
+                socket_context->mClientFd = INVALID_FD;
                 break;
             }
 
@@ -137,10 +144,18 @@ void IPV4ThreadsClientHandle::handleWriteEvent(void)
 
             total_send += sb;
         }
+
+        if (socket_context->mClientFd == INVALID_FD)
+        {
+            std::cout << "write thread has been done" << std::endl;
+            break;
+        }
     }
 
+#if 0
     close(socket_context->mClientFd);
     socket_context->mClientFd = INVALID_FD;
+#endif
 
     return;
 }
@@ -230,7 +245,8 @@ bool IPV4ThreadsTcpServer::run(void)
         }
 
         std::cout << "server: accept from "
-            << ":[" << inet_ntoa(cli_addr.sin_addr) << "]:[" << ntohs(cli_addr.sin_port) << "] client" << std::endl;
+            << ":[" << inet_ntoa(cli_addr.sin_addr) << "]"
+            << ":[" << ntohs(cli_addr.sin_port) << "] client" << std::endl;
 
         IPV4SocketContextPtr context(new IPV4SocketContext(cli_addr, client_socket));
         std::shared_ptr<std::thread> threadHandleClient(new std::thread(

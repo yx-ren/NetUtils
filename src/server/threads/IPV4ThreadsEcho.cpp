@@ -14,21 +14,6 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
-#if 0
-    TcpServerPtr server;
-    if (argc >= 3)
-        server.reset(new IPV4ThreadsTcpServer(argv[2], atoi(argv[1])));
-    else
-        server.reset(new IPV4ThreadsTcpServer(atoi(argv[1])));
-
-    if (!server)
-    {
-        std::cerr << "invalid server pointer" << std::endl;
-        return -1;
-    }
-
-    server->start();
-#else
     TcpServerPtr server;
     if (argc >= 3)
         server.reset(new IPV4ThreadsTcpServer(argv[2], atoi(argv[1])));
@@ -56,7 +41,8 @@ int main(int argc, const char* argv[])
 
     ipv4ServerThread.join();
     ipv6ServerThread.join();
-#endif
+
+    std::cout << "server done" << std::endl;
 
     return 0;
 }
