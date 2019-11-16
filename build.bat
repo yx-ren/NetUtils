@@ -33,10 +33,10 @@ mkdir %BUILD_DIR%
 pushd %BUILD_DIR%
 if "%PLATFORM%" == "Win32" (
    cmake -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DPLATFORM_TYPE=%PLATFORM% ..
-   msbuild echo_server.sln /p:Configuration=%BUILD_TYPE% /p:Platform=Win32 /p:MultiProcessCompilation=true /p:PlatformToolset=%TOOLSET%
+   msbuild net_io.sln /p:Configuration=%BUILD_TYPE% /p:Platform=Win32 /p:MultiProcessCompilation=true /p:PlatformToolset=%TOOLSET%
 ) else (
     cmake -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCPU_COUNT=%CPU_COUNT% -DPLATFORM_TYPE=%PLATFORM% -G "Visual Studio 14 2015 Win64" ..
-    msbuild echo_server.sln /p:Configuration=%BUILD_TYPE% /p:Platform=x64 /p:MultiProcessorCompilation=true /p:PlatformToolset=%TOOLSET%
+    msbuild net_io.sln /p:Configuration=%BUILD_TYPE% /p:Platform=x64 /p:MultiProcessorCompilation=true /p:PlatformToolset=%TOOLSET%
 )
 
 popd

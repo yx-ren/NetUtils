@@ -10,6 +10,18 @@
 #define GET_LAST_SOCKET_ERROR errno
 #endif
 
+#if (defined WIN32) || (defined _WIN32)
+#include <WinSock2.h>
+#else
+#endif
+
+#if (defined WIN32) || (defined _WIN32)
+#define CLOSE_SOCKET(fd) closesocket(fd)
+#else
+#define GET_LAST_SOCKET_ERROR errno
+#define CLOSE_SOCKET(fd) close(fd)
+#endif
+
 #include <string>
 #include <memory>
 

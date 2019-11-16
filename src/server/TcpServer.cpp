@@ -42,7 +42,7 @@ bool TcpServer::start(void)
 
 bool TcpServer::stop(void)
 {
-    close(mFd);
+    CLOSE_SOCKET(mFd);
     mFd = INVALID_FD;
 
     return true;
