@@ -6,5 +6,7 @@ FILE(GLOB SOURCE_FILE
     ../TcpServer.*
     )
 ADD_EXECUTABLE(echo_server_threads ${SOURCE_FILE})
-TARGET_LINK_LIBRARIES(echo_server_threads ws2_32.lib)
+IF (WIN32)
+    TARGET_LINK_LIBRARIES(echo_server_threads ws2_32.lib)
+ENDIF()
 #SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
