@@ -53,12 +53,14 @@ void IPV4ThreadsClientHandle::handleReadEvent(void)
 
         std::shared_ptr<std::string> recv_msg(new std::string(recv_msg_buf, rb));
 
+#if 0
         std::cout << "server: recv from address:[" << inet_ntoa(socket_context->mClientAddr.sin_addr) << "], "
             << "port:[" << std::dec << ntohs(socket_context->mClientAddr.sin_port) << "], "
             << "bytes:[" << rb << "], "
             << "msg:[" << *recv_msg << "], "
             << "hex buf:\n"
             << dumpHex(recv_msg->c_str(), recv_msg->size()) << std::endl << std::endl;
+#endif
 
         std::unique_lock<std::mutex> lk(mMutex);
         mMessageQueue.push(recv_msg);
@@ -91,8 +93,7 @@ void IPV4ThreadsClientHandle::handleWriteEvent(void)
     while (true)
     {
         std::unique_lock<std::mutex> lk(mMutex);
-        if (mMessageQueue.empty())
-            mCond.wait(lk);
+        mCond.wait(lk, [&](){return !mMessageQueue.empty();});
 
         if (socket_context->mClientFd == INVALID_FD)
         {
@@ -135,12 +136,14 @@ void IPV4ThreadsClientHandle::handleWriteEvent(void)
                 break;
             }
 
+#if 0
             std::cout << "server: send to address:[" << inet_ntoa(socket_context->mClientAddr.sin_addr) << "], "
                 << "port:[" << ntohs(socket_context->mClientAddr.sin_port) << "], "
                 << "bytes:[" << sb << "], "
                 << "msg:[" << *send_msg << "], "
                 << "hex buf:\n"
                 << dumpHex(send_msg->c_str(), send_msg->size()) << std::endl << std::endl;
+#endif
 
             total_send += sb;
         }
