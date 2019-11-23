@@ -1,54 +1,288 @@
 #include "Logger.h"
 
+#include <time.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <mutex>
+#include <chrono>
+#include <iomanip>
+#include <thread>
 
-Logger::Logger()
+std::string LoggerHelper::levelToString(LOG_LEVEL level)
 {
-    mImpl.reset(new LoggerImpl);
+    std::string log_level("");
+    switch(level)
+    {
+        case LOG_LEVEL::LOG_LEVEL_OFF:
+            log_level = "OFF";
+            break;
+        case LOG_LEVEL::LOG_LEVEL_FAILED:
+            log_level = "FAILED";
+            break;
+        case LOG_LEVEL_ERROR:
+            log_level = "ERROR";
+            break;
+        case LOG_LEVEL_WARN:
+            log_level = "WARN";
+            break;
+        case LOG_LEVEL_INFO:
+            log_level = "INFO";
+            break;
+        case LOG_LEVEL_DEBUG:
+            log_level = "DEBUG";
+            break;
+        case LOG_LEVEL_TRACE:
+            log_level = "TRACE";
+            break;
+        default:
+            log_level = "UNKNOWN";
+            break;
+    }
+
+    return log_level;
 }
 
-bool Logger::init(const LogConfig& conf)
+std::string LoggerHelper::modeToString(int mode)
 {
-    return mImpl->init();
+    std::string log_mode;
+    if (mode & LOG_MODE_FILE)
+        log_mode += "FILE; ";
+    if (mode & LOG_MODE_CONSOLE)
+        log_mode += "CONSOLE; ";
+
+    return log_mode;
 }
 
-std::string Logger::configToString(void)
+std::string LoggerHelper::configToString(LogConfig conf)
 {
-    return mImpl->configToString(void);
+    std::ostringstream oss;
+    oss << "log level:[" << levelToString(conf.level) << "], "
+        << "log mode:[" << modeToString(conf.mode) << "], "
+        << "log path:[" << conf.file_path << "], "
+        << "log size:[" << conf.file_size << "] bytes, "
+        << "log backup:[" << conf.file_backup<< "]"
+        << std::endl;
+
+    return oss.str();
 }
+
+// ---------------------------------------- //
+// LoggerImpl
+// ---------------------------------------- //
 
 class LoggerImpl
 {
 public:
-    LoggerImpl();
+    explicit LoggerImpl(const LogConfig& conf)
+        : mLogConfig(conf)
+        , mOfs(NULL)
+    {}
 
-    bool init(const LogConfig& conf);
+    virtual ~LoggerImpl()
+    {
+        if (mOfs)
+            mOfs->close();
+    }
 
-    std::string configToString(void);
+    bool init(void);
+
+    void setConfig(const LogConfig& conf);
+    LogConfig getConfig(void);
+
+    void writeLog(std::string& log, LOG_LEVEL level);
+    void writeLog(std::string& tag, std::string& log, LOG_LEVEL level);
+
+protected:
+    virtual std::string generatePrefix(void);
+
+    virtual std::string generateTimestamp(void);
+    virtual std::string generateThreadID(void);
+    virtual std::string generateModuleTag(void);
+    virtual std::string generateLogLevel(void);
+    virtual std::string generateLogTag(void);
+    virtual std::string generateClassTag(void);
+    virtual std::string generateFunctionTag(void);
 
 private:
     std::mutex mMutex;
     LogConfig mLogConfig;
+    std::shared_ptr<std::ofstream> mOfs;
 };
 
-
-bool LoggerImpl::init(const LogConfig& conf)
+bool LoggerImpl::init(void)
 {
+    mOfs.reset(new std::ofstream(mLogConfig.file_path, std::ios::out | std::ios::app));
+    if (!mOfs->is_open())
+    {
+        std::cerr << "call std::ofstream() failed, "
+            << "log file path:[" << mLogConfig.file_path << "]" << std::endl;
+        return false;
+    }
+
     return true;
 }
 
-std::string LoggerImpl::configToString(void)
+void LoggerImpl::setConfig(const LogConfig& conf)
+{
+    mLogConfig = conf;
+}
+
+LogConfig LoggerImpl::getConfig(void)
+{
+    return mLogConfig;
+}
+
+void LoggerImpl::writeLog(std::string& log, LOG_LEVEL level)
+{
+    if (level > mLogConfig.level)
+        return;
+
+    if (mOfs == NULL)
+    {
+        std::cerr << "logger not be inited, call init() and try again" << std::endl;
+        return;
+    }
+
+    std::ostringstream oss;
+    std::string log_prefix = generatePrefix();
+    oss << log_prefix << log << std::endl;
+
+    std::lock_guard<std::mutex> lk(mMutex);
+    if (mLogConfig.mode & LOG_MODE_FILE)
+    {
+        *mOfs << oss.str();
+    }
+
+    if (mLogConfig.mode & LOG_MODE_CONSOLE)
+    {
+        std::cout << oss.str();
+    }
+
+    return;
+}
+
+void LoggerImpl::writeLog(std::string& tag, std::string& log, LOG_LEVEL level)
+{
+    return;
+}
+
+std::string LoggerImpl::generatePrefix(void)
 {
     std::ostringstream oss;
-    oss << "log level:[" << mLogConfig.level << "], "
-        << "log mode:[" << mLogConfig.mode << "], "
-        << "log path:[" << mLogConfig.file_path << "], "
-        << "log size:[" << mLogConfig.file_size << "], "
-        << "log backup:[" << mLogConfig.file_backup<< "]"
-        << std::endl;
+    oss << generateTimestamp() << " "
+        << "[" << generateThreadID() << "] "
+        << "<" << generateModuleTag()<< ">: "
+        << generateLogLevel()<< " "
+        << generateLogTag() << "." << generateFunctionTag() << " - ";
 
     return oss.str();
+}
+
+std::string LoggerImpl::generateTimestamp(void)
+{
+    auto time_now    = std::chrono::system_clock::now();
+
+    auto duration_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(time_now.time_since_epoch());
+    auto part_ms     =
+        duration_ms - std::chrono::duration_cast<std::chrono::seconds>(duration_ms);
+
+    auto duration_us =
+        std::chrono::duration_cast<std::chrono::microseconds>(time_now.time_since_epoch());
+    auto part_us     =
+        duration_us - std::chrono::duration_cast<std::chrono::milliseconds>(duration_us);
+
+    struct tm local_time;
+    time_t ctime = std::chrono::system_clock::to_time_t(time_now);
+#if defined(WIN32) || defined(_WIN32)
+    _localtime64_s(&local_time, &ctime);
+#else
+    localtime_r(&ctime, &local_time);
+#endif
+
+    char timestamp[0x7f] = {0};
+    std::strftime(timestamp, sizeof(timestamp),
+        "%Y-%m-%d %H:%M:%S", &local_time);
+
+    std::ostringstream oss;
+    oss << timestamp
+        << "," << std::setw(3) << std::setfill('0') << part_ms.count()
+        << "," << std::setw(3) << std::setfill('0') << part_us.count();
+
+    return oss.str();
+}
+
+std::string LoggerImpl::generateThreadID(void)
+{
+    std::ostringstream oss;
+    oss << std::this_thread::get_id();
+    unsigned int tid = std::stoul(oss.str());
+
+    oss.str("");
+    oss.clear();
+
+    oss << "0x" << std::setw(8) << std::setfill('0')
+        << std::hex << tid;
+
+    return oss.str();
+}
+
+std::string LoggerImpl::generateModuleTag(void)
+{
+    return "";
+}
+
+std::string LoggerImpl::generateLogLevel(void)
+{
+    return LoggerHelper::levelToString(mLogConfig.level);
+}
+
+std::string LoggerImpl::generateLogTag(void)
+{
+    return "";
+}
+
+std::string LoggerImpl::generateClassTag(void)
+{
+    return "";
+}
+
+std::string LoggerImpl::generateFunctionTag(void)
+{
+    return "";
+}
+
+// ---------------------------------------- //
+// Logger
+// ---------------------------------------- //
+
+Logger::Logger(const LogConfig& conf)
+{
+    mImpl.reset(new LoggerImpl(conf));
+}
+
+bool Logger::init(void)
+{
+    return mImpl->init();
+}
+
+void Logger::setConfig(const LogConfig& conf)
+{
+    return mImpl->setConfig(conf);
+}
+
+LogConfig Logger::getConfig(void)
+{
+    return mImpl->getConfig();
+}
+
+void Logger::writeLog(std::string& log, LOG_LEVEL level)
+{
+    return mImpl->writeLog(log, level);
+}
+
+void Logger::writeLog(std::string& tag, std::string& log, LOG_LEVEL level)
+{
+    return mImpl->writeLog(tag, log, level);
 }

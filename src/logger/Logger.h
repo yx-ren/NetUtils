@@ -6,13 +6,13 @@
 
 enum LOG_LEVEL
 {
-    LOG_LEVEL_FAILED = 0,
+    LOG_LEVEL_OFF = 0,
+    LOG_LEVEL_FAILED,
     LOG_LEVEL_ERROR,
     LOG_LEVEL_WARN,
     LOG_LEVEL_INFO,
     LOG_LEVEL_DEBUG,
     LOG_LEVEL_TRACE,
-    LOG_LEVEL_OFF
 };
 
 enum LOG_MODE
@@ -38,18 +38,33 @@ struct LogConfig
     size_t file_backup;
 };
 
+class LoggerHelper
+{
+public:
+    static std::string levelToString(LOG_LEVEL level);
+
+    static std::string modeToString(int mode);
+
+    static std::string configToString(LogConfig conf);
+};
+
 class LoggerImpl;
 class Logger
 {
 public:
-    Logger();
+    explicit Logger(const LogConfig& conf);
+    Logger(const Logger&) = delete;
+    Logger& operator=(const Logger&) = delete;
 
-    bool init(const LogConfig& conf);
+    bool init(void);
 
-    std::string configToString(void);
+    void setConfig(const LogConfig& conf);
+    LogConfig getConfig(void);
+
+    void writeLog(std::string& log, LOG_LEVEL level);
+    void writeLog(std::string& tag, std::string& log, LOG_LEVEL level);
 
 private:
-    //LoggerImpl* mImpl;
     std::shared_ptr<LoggerImpl> mImpl;
 };
 
