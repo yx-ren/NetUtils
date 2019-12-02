@@ -2,12 +2,60 @@
 
 #include <time.h>
 #include <fstream>
+#include <ostream>
 #include <sstream>
 #include <iostream>
 #include <mutex>
 #include <chrono>
 #include <iomanip>
 #include <thread>
+#include <iterator>
+
+class FileHelper
+{
+public:
+    FileHelper() = delete;
+    FileHelper(const FileHelper&) = delete;
+    FileHelper& operator=(const FileHelper&) = delete;
+
+    static bool getFileSize(std::string& path, size_t& fsize);
+    static bool getFileName(std::string& path);
+    static bool getFilePathPrefix(std::string& path);
+    static bool moveFile(std::string& oldPath, std::string& newPath);
+    static bool removeFile(std::string& path);
+};
+
+bool FileHelper::getFileSize(std::string& path, size_t& fsize)
+{
+    std::ifstream ifs(path, std::ios::in | std::ios::binary);
+    if (!ifs.is_open())
+        return false;
+
+    std::string file_buf((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    fsize = file_buf.size();
+
+    return true;
+}
+
+bool FileHelper::getFileName(std::string& path)
+{
+    return true;
+}
+
+bool FileHelper::getFilePathPrefix(std::string& path)
+{
+    return true;
+}
+
+bool FileHelper::moveFile(std::string& oldPath, std::string& newPath)
+{
+    return true;
+}
+
+bool FileHelper::removeFile(std::string& path)
+{
+    return true;
+}
 
 std::string LoggerHelper::levelToString(LOG_LEVEL level)
 {
@@ -94,15 +142,15 @@ public:
     void writeLog(std::string& tag, std::string& log, LOG_LEVEL level);
 
 protected:
-    virtual std::string generatePrefix(void);
+    virtual inline std::string generatePrefix(void);
 
-    virtual std::string generateTimestamp(void);
-    virtual std::string generateThreadID(void);
-    virtual std::string generateModuleTag(void);
-    virtual std::string generateLogLevel(void);
-    virtual std::string generateLogTag(void);
-    virtual std::string generateClassTag(void);
-    virtual std::string generateFunctionTag(void);
+    virtual inline std::string generateTimestamp(void);
+    virtual inline std::string generateThreadID(void);
+    virtual inline std::string generateModuleTag(void);
+    virtual inline std::string generateLogLevel(void);
+    virtual inline std::string generateLogTag(void);
+    virtual inline std::string generateClassTag(void);
+    virtual inline std::string generateFunctionTag(void);
 
 private:
     std::mutex mMutex;

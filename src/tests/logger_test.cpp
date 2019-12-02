@@ -17,6 +17,7 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
+    auto time_begin = std::chrono::high_resolution_clock::now();
     for (int i = 0; i != 500000; i++)
     {
         std::ostringstream oss;
@@ -25,6 +26,9 @@ int main(int argc, const char* argv[])
         logger.writeLog(log_info, LOG_LEVEL_DEBUG);
         //std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+    auto time_end = std::chrono::high_resolution_clock::now();
+    auto cost_us = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_begin);
+    std::cout << "cost time:[" << cost_us.count() << "] ms" << std::endl;
 
     return 0;
 }
