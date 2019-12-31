@@ -1,5 +1,5 @@
 FILE(GLOB SOURCE_FILE
-    IPV4ThreadsEcho.cpp
+    ThreadsEcho.cpp
     ThreadsClientHandle.*
     IPV4ThreadsTcpServer.*
     IPV6ThreadsTcpServer.*

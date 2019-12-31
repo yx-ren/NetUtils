@@ -24,25 +24,28 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 
 class TcpServer
 {
 public:
-    explicit TcpServer(uint16_t port)
-        : mIp(""), mPort(port), mFd(INVALID_FD)
-    {}
+    typedef std::shared_ptr<std::function<bool(const int sock)>> SetSockOptCBPtr;
+    typedef std::shared_ptr<std::vector<SetSockOptCBPtr>> SetSockOptCBsVectorPtr;
 
-    explicit TcpServer(const std::string ip, uint16_t port)
-        : mIp(ip), mPort(port), mFd(INVALID_FD)
-    {}
+    explicit TcpServer(uint16_t port);
 
-    virtual ~TcpServer()
-    {}
+    explicit TcpServer(const std::string ip, uint16_t port);
+
+    virtual ~TcpServer();
 
     virtual bool start(void);
 
     virtual bool stop(void);
+
+    virtual void setListenSockCBs(SetSockOptCBsVectorPtr listenSockCBs);
+
+    virtual void setAcceptSockCBs(SetSockOptCBsVectorPtr acceptSockCBs);
 
 protected:
     TcpServer(const TcpServer&) = delete;
@@ -53,7 +56,13 @@ protected:
 
     virtual bool run(void) = 0;
 
+    virtual void applyListenSockCBs(int listenSock);
+
+    virtual void applyAcceptSockCBs(int acceptSock);
+
 protected:
+    SetSockOptCBsVectorPtr mListenSockCBs;
+    SetSockOptCBsVectorPtr mAcceptSockCBs;
     std::string mIp;
     uint16_t mPort;
     int32_t mFd;

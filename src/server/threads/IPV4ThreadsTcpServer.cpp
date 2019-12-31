@@ -246,6 +246,26 @@ bool IPV4ThreadsTcpServer::run(void)
             << ":[" << inet_ntoa(cli_addr.sin_addr) << "]"
             << ":[" << ntohs(cli_addr.sin_port) << "] client" << std::endl;
 
+        struct timeval timeout;
+        timeout.tv_sec = 10;
+        timeout.tv_usec = 0;
+
+        if (setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO,
+            (char *)&timeout, sizeof(timeout)) < 0)
+        {
+            std::cerr << "server: call setsockopt() failed, for set SO_RCVTIMEO"
+                << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
+            return false;
+        }
+
+        if (setsockopt(client_socket, SOL_SOCKET, SO_SNDTIMEO,
+            (char *)&timeout, sizeof(timeout)) < 0)
+        {
+            std::cerr << "server: call setsockopt() failed, for set SO_SNDTIMEO"
+                << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
+            return false;
+        }
+
         IPV4SocketContextPtr context(new IPV4SocketContext(cli_addr, client_socket));
         std::shared_ptr<std::thread> threadHandleClient(new std::thread(
             std::bind(&IPV4ThreadsTcpServer::handleClient, this, context)));
