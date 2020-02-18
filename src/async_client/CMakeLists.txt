@@ -1,0 +1,9 @@
+FILE(GLOB SOURCE_FILE
+    ./*cpp
+    ./*h
+    )
+ADD_EXECUTABLE(async_client ${SOURCE_FILE})
+IF (WIN32)
+    TARGET_LINK_LIBRARIES(echo_server_threads ws2_32.lib)
+ENDIF()
+#SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
