@@ -2,7 +2,7 @@ FILE(GLOB SOURCE_FILE
     ./*cpp
     ./*h
     )
-ADD_EXECUTABLE(async_client ${SOURCE_FILE})
+#ADD_EXECUTABLE(async_client ${SOURCE_FILE})
 IF (WIN32)
     TARGET_LINK_LIBRARIES(echo_server_threads ws2_32.lib)
 ENDIF()
