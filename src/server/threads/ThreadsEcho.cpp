@@ -1,10 +1,36 @@
 #include <iostream>
 #include <stdlib.h>
+#include <log4cxx/helpers/properties.h>
+#include <log4cxx/propertyconfigurator.h>
+#include <log4cxx/asyncappender.h>
+#include <log4cxx/fileappender.h>
+#include <log4cxx/level.h>
+#include <log4cxx/consoleappender.h>
+#include <log4cxx/patternlayout.h>
 #include "IPV4ThreadsTcpServer.h"
 #include "IPV6ThreadsTcpServer.h"
 
+void init_log()
+{
+    using namespace log4cxx;
+    using namespace log4cxx::helpers;
+
+    Properties props;
+    props.put("log4j.logger.SysLog", "INFO, console");
+    props.put("log4j.appender.console", "org.apache.log4j.ConsoleAppender");
+    props.put("log4j.appender.console.layout", "org.apache.log4j.PatternLayout");
+    props.put("log4j.appender.console.layout.ConversionPattern", "%d [%t] %-5p %.32c - %m%n");
+
+    PropertyConfigurator::configure(props);
+
+    auto logger = log4cxx::Logger::getLogger("SysLog");
+    LOG4CXX_INFO(logger, "this is a log generate by log4cxx");
+}
+
 int main(int argc, const char* argv[])
 {
+    init_log();
+
     // check input arguments
     if (argc < 2)
     {
