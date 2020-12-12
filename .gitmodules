@@ -1,0 +1,3 @@
+[submodule ".submodule/common"]
+	path = .submodule/common
+	url = git@github.com:yx-ren/common.git
