@@ -9,6 +9,8 @@
 #include <log4cxx/patternlayout.h>
 #include "IPV4ThreadsTcpServer.h"
 #include "IPV6ThreadsTcpServer.h"
+#include <common/base/logger/Logger.h>
+using namespace CBASE_LOGGER_NAMESPACE;
 
 void init_log()
 {
@@ -29,7 +31,11 @@ void init_log()
 
 int main(int argc, const char* argv[])
 {
-    init_log();
+    //init_log();
+    LoggerParameter logger_param;
+    Logger logger;
+    logger.init(logger_param);
+    LOG4CXX_INFO(logger.get_logger(), "this is a log generate by cbase");
 
     // check input arguments
     if (argc < 2)
