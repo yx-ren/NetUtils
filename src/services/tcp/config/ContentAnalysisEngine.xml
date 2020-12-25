@@ -1,0 +1,955 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentAnalysisEngine>
+    <debug>
+        <UploadEnabled>true</UploadEnabled>
+        <DumpRequest>false</DumpRequest>
+        <DumpPolicy>false</DumpPolicy>
+        <JitEnabled>true</JitEnabled>
+        <EngineEnabled>true</EngineEnabled>
+        <ContentParseAsync>true</ContentParseAsync>
+        <AccessLogEnabled>true</AccessLogEnabled>
+        <LongTimeConnectionWithMC>false</LongTimeConnectionWithMC>
+        <AddFromFromContent>false</AddFromFromContent>
+        <DownloadServiceEnabled>true</DownloadServiceEnabled>
+        <PolicyFile/>
+    </debug>
+    <global>
+        <mode>NETWORK</mode>
+        <IsFastDetectionMode>false</IsFastDetectionMode>
+        <DownloadTemplateTimeout>100</DownloadTemplateTimeout>
+        <logging>
+            <level>DEBUG</level>
+            <moduleLevel>
+                <unstructured>DEBUG</unstructured>
+                <structured>DEBUG</structured>
+            </moduleLevel>
+            <console>
+                <enabled>false</enabled>
+            </console>
+            <file>
+                <enabled>true</enabled>
+                <FileName>var/log/ContentAnalysisEngine.log</FileName>
+                <MaxSize>10MB</MaxSize>
+                <MaxBackupIndex>10</MaxBackupIndex>
+            </file>
+            <syslog>
+                <enabled>false</enabled>
+            </syslog>
+        </logging>
+        <maintenance>
+            <HealthyCheckingEnabled>true</HealthyCheckingEnabled>
+            <HealthyIntervalSec>300</HealthyIntervalSec>
+            <HealthyCheckingInDebug>false</HealthyCheckingInDebug>
+            <QuitWhenUnhealthy>true</QuitWhenUnhealthy>
+            <MemoryCheckingEnabled>true</MemoryCheckingEnabled>
+            <MaxMemoryGB>8</MaxMemoryGB>
+            <FDCheckingEnabled>true</FDCheckingEnabled>
+            <MaxFDCount>32700</MaxFDCount>
+        </maintenance>
+        <IPSwitch>
+            <IPv6Enable>true</IPv6Enable>
+            <ExternalMgmtIPv6Enable>true</ExternalMgmtIPv6Enable>
+            <ExternalMgmtIPv4Enable>true</ExternalMgmtIPv4Enable>
+            <InternalMgmtIPv6Enable>true</InternalMgmtIPv6Enable>
+            <InternalMgmtIPv4Enable>true</InternalMgmtIPv4Enable>
+            <EndpointMgmtIPv6Enable>true</EndpointMgmtIPv6Enable>
+            <EndpointMgmtIPv4Enable>true</EndpointMgmtIPv4Enable>
+        </IPSwitch>
+        <threadpool>
+            <PolicyEnforcementEngine>
+                <EngineMaxThreads>8</EngineMaxThreads>
+                <ProcessingMaxThreads>8</ProcessingMaxThreads>
+                <enabled>true</enabled>
+            </PolicyEnforcementEngine>
+            <UrlFiltering>
+                <MaxThreads>5</MaxThreads>
+                <enabled>false</enabled>
+            </UrlFiltering>
+            <UserService>
+                <MaxThreads>5</MaxThreads>
+                <enabled>false</enabled>
+            </UserService>
+            <ContentAnalyticEngine>
+                <MaxThreads>4</MaxThreads>
+                <enabled>true</enabled>
+            </ContentAnalyticEngine>
+            <MaxPendingTasks>200000</MaxPendingTasks>
+        </threadpool>
+        <iothreadpool>
+            <PolicyBroker>
+                <MaxThreads>2</MaxThreads>
+                <enabled>true</enabled>
+            </PolicyBroker>
+            <ContentParsingAsync>
+                <MaxThreads>5</MaxThreads>
+                <enabled>false</enabled>
+                <ParallelOCRClients>2</ParallelOCRClients>
+            </ContentParsingAsync>
+        </iothreadpool>
+        <ThriftFPDBClientPool>
+            <MaxConnectiones>128</MaxConnectiones>
+            <GetConnTimeout>3</GetConnTimeout>
+        </ThriftFPDBClientPool>
+        <Fingerprinting>
+            <ReconfigureEnabled>true</ReconfigureEnabled>
+            <FilePath>etc/.FP.config.xml</FilePath>
+        </Fingerprinting>
+        <Incident>
+            <RotationEnabled>true</RotationEnabled>
+            <LocalPath>var/spe/incident_log</LocalPath>
+            <SaveThreadsNum>1</SaveThreadsNum>
+            <SendThreadsNum>2</SendThreadsNum>
+            <RotateFolderSpaceMax>1024</RotateFolderSpaceMax>
+            <RotateFolderIndexMax>9</RotateFolderIndexMax>
+            <SendIncidentsMax>100</SendIncidentsMax>
+            <SendIncidentsPeriod>10</SendIncidentsPeriod>
+            <ForensicMaxContentSize>100</ForensicMaxContentSize>
+        </Incident>
+    </global>
+    <components>
+        <component name="PolicyBroker">
+            <TcpServer>
+                <ServerPort>8815</ServerPort>
+            </TcpServer>
+            <TcpIPv6Server>
+                <ServerPort>8815</ServerPort>
+            </TcpIPv6Server>
+            <LocalServer>
+                <enabled>false</enabled>
+                <ServerPort>9291</ServerPort>
+            </LocalServer>
+            <HttpServer>
+                <enabled>false</enabled>
+                <ServerPort>9391</ServerPort>
+            </HttpServer>
+            <MaxPackageSizeMB>2050</MaxPackageSizeMB>
+            <MaxConnections>512</MaxConnections>
+            <ConnectionTimeout>-1</ConnectionTimeout>
+            <PackageReceivingTimeout>10</PackageReceivingTimeout>
+        </component>
+        <component name="PolicyEnforcementEngine">
+            <MaxRunningTransactions>10240</MaxRunningTransactions>
+            <MaxParallelMatchingTasks>5</MaxParallelMatchingTasks>
+            <MaxMatchNum>999</MaxMatchNum>
+            <MaxTimeoutOfMatching>30</MaxTimeoutOfMatching>
+        </component>
+        <component name="PolicySyncService">
+            <ServerIP>172.22.53.1</ServerIP>
+            <ServerPort>9090</ServerPort>
+            <SyncTimeout>10</SyncTimeout>
+        </component>
+        <component name="StorageListener">
+            <enabled>false</enabled>
+            <shareType>SMB</shareType>
+            <host/>
+            <path/>
+            <accountType/>
+            <userCredenceId/>
+            <userName/>
+            <password/>
+            <domain/>
+            <contents_queue_size>256</contents_queue_size>
+        </component>
+        <component name="LogicalManagementService">
+            <ServerPort>9190</ServerPort>
+        </component>
+        <component name="UnstructuredDataMatcher">
+            <FPFilter>
+                <enabled>true</enabled>
+            </FPFilter>
+            <FPDBServer>
+                <enabled>true</enabled>
+            </FPDBServer>
+            <FPDBPrecise>
+                <enabled>true</enabled>
+            </FPDBPrecise>
+            <FPDBSimilarity>
+                <enabled>true</enabled>
+            </FPDBSimilarity>
+        </component>
+        <component name="TrickleDetection">
+            <enabled>true</enabled>
+            <UserIndexEnabled>true</UserIndexEnabled>
+            <PolicyIndexEnabled>true</PolicyIndexEnabled>
+            <DBCount>2</DBCount>
+            <TableCount>64</TableCount>
+            <AutoClearPeriod>60</AutoClearPeriod>
+            <DBPath>var/spe/trickle_detection_cache</DBPath>
+        </component>
+        <component name="ContentAnalyticEngine">
+            <feature name="LocalScan">
+                <enabled>true</enabled>
+                <mode>OR</mode>
+                <enginelist>QAVLib,QAVService,AviraLib</enginelist>
+                <engines>
+                    <engine name="QAVLib">
+                        <enabled>false</enabled>
+                        <engineLibName>libAVEngine-QAVLib.so</engineLibName>
+                        <AVEenabled>true</AVEenabled>
+                        <QEXenabled>true</QEXenabled>
+                        <QVMenabled>true</QVMenabled>
+                        <LibPath>lib/360lib</LibPath>
+                        <UnPackSizeLimit>10000000</UnPackSizeLimit>
+                        <PackRatioLimit>0.1</PackRatioLimit>
+                    </engine>
+                    <engine name="QAVService">
+                        <enabled>false</enabled>
+                        <engineLibName>libAVEngine-QAVClient.so</engineLibName>
+                        <sdkLibPath>av_sdk.so</sdkLibPath>
+                        <timeout>10</timeout>
+                        <threadNum>4</threadNum>
+                        <server>
+                            <protocol>milter</protocol>
+                            <maxConnectionNum>128</maxConnectionNum>
+                            <milter>
+                                <connectionType>tcp</connectionType>
+                                <tcp>
+                                    <address>127.0.0.1</address>
+                                    <port>6666</port>
+                                </tcp>
+                            </milter>
+                        </server>
+                    </engine>
+                    <engine name="AviraLib">
+                        <enabled>true</enabled>
+                        <engineLibName>libAVEngine-AviraLib.so</engineLibName>
+                        <productID>11571</productID>
+                        <sdkPath>lib/avira</sdkPath>
+                        <archiveMaxSize>1073741824</archiveMaxSize>
+                        <archiveMaxLevels>200</archiveMaxLevels>
+                        <archiveMaxRatio>150</archiveMaxRatio>
+                        <archiveMaxCount>200</archiveMaxCount>
+                        <archiveMaxRec>200</archiveMaxRec>
+                        <archiveScan>1</archiveScan>
+                        <detectAdspy>1</detectAdspy>
+                        <detectAdware>1</detectAdware>
+                        <detectAppl>0</detectAppl>
+                        <detectBdc>1</detectBdc>
+                        <detectDial>1</detectDial>
+                        <detectGame>0</detectGame>
+                        <detectHiddenExt>1</detectHiddenExt>
+                        <detectJoke>0</detectJoke>
+                        <detectPfs>1</detectPfs>
+                        <detectPhish>1</detectPhish>
+                        <detectPua>1</detectPua>
+                        <detectSpr>0</detectSpr>
+                        <savapiNotifyOfficeMacro>0</savapiNotifyOfficeMacro>
+                        <savapiNotifyOfficeMacroAutostart>0</savapiNotifyOfficeMacroAutostart>
+                        <heurMacro>1</heurMacro>
+                        <heurLevel>2</heurLevel>
+                        <timeout>300</timeout>
+                        <repair>0</repair>
+                    </engine>
+                </engines>
+            </feature>
+            <feature name="MD5Query">
+                <enabled>false</enabled>
+            </feature>
+            <feature name="Sandbox">
+                <enabled>false</enabled>
+            </feature>
+        </component>
+        <component name="DownloadService">
+            <DBTypes>QAVS,AVES,QEXS,QVMM</DBTypes>
+            <DBRootDir>/opt/skyguard/ucs/var/spe/download_database</DBRootDir>
+            <DownloadServerHostName>db-download.skyguard.com.cn</DownloadServerHostName>
+            <SSLEnabled>true</SSLEnabled>
+            <CAEnabled>true</CAEnabled>
+            <CAPath>/opt/skyguard/ucs/etc/db-server.crt</CAPath>
+            <ClientCertEnabled>true</ClientCertEnabled>
+            <ScheduleEnabled>false</ScheduleEnabled>
+            <UnscheduleCycleTime>900</UnscheduleCycleTime>
+            <ScheduleDays>1,2,3,4,5</ScheduleDays>
+            <ScheduleBeginTimes>09:00,18:00</ScheduleBeginTimes>
+            <AviraUnscheduleCycleTime>1800</AviraUnscheduleCycleTime>
+            <AviraDownloadPath>/opt/skyguard/ucs/var/spe/avira_download</AviraDownloadPath>
+            <AviraLastUpdatedTime>2020-12-25 16:00:37</AviraLastUpdatedTime>
+            <download>
+                <enabled>true</enabled>
+                <DaysOfWeek>0,1,2,3,4,5,6</DaysOfWeek>
+                <TimeFrom>00:00</TimeFrom>
+                <TimeTo>24:00</TimeTo>
+                <interval>3600</interval>
+            </download>
+            <update>
+                <enabled>true</enabled>
+                <DaysOfWeek>0,1,2,3,4,5,6</DaysOfWeek>
+                <UpdateTime>01:00</UpdateTime>
+            </update>
+            <proxy>
+                <enabled>false</enabled>
+                <host/>
+                <port/>
+                <UserAuthEnabled>false</UserAuthEnabled>
+                <username/>
+                <password/>
+            </proxy>
+            <notification>
+                <enabled>true</enabled>
+                <url>http://127.0.0.1:8888/ats/v1/versionLibrary/notify</url>
+            </notification>
+        </component>
+        <component name="TrafficLog">
+            <MaxCachedLogNumber>6000</MaxCachedLogNumber>
+        </component>
+    </components>
+    <channels>
+        <channel name="http">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>10</TotalTimeout>
+                <ContentParsingTimeout>7</ContentParsingTimeout>
+                <TrafficSizeLimit>12</TrafficSizeLimit>
+            </mode>
+        </channel>
+        <channel name="https">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>10</TotalTimeout>
+                <ContentParsingTimeout>7</ContentParsingTimeout>
+                <TrafficSizeLimit>12</TrafficSizeLimit>
+            </mode>
+        </channel>
+        <channel name="ftp">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>10</TotalTimeout>
+                <ContentParsingTimeout>7</ContentParsingTimeout>
+                <TrafficSizeLimit>12</TrafficSizeLimit>
+            </mode>
+        </channel>
+        <channel name="im">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block"/>
+        </channel>
+        <channel name="smtp">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="custom">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="discovery">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="print">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>120</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>130</TotalTimeout>
+                <ContentParsingTimeout>120</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="pop3">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="imap">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_http">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>10</TotalTimeout>
+                <ContentParsingTimeout>8</ContentParsingTimeout>
+                <TrafficSizeLimit>12</TrafficSizeLimit>
+            </mode>
+        </channel>
+        <channel name="endpoint_https">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>10</TotalTimeout>
+                <ContentParsingTimeout>8</ContentParsingTimeout>
+                <TrafficSizeLimit>12</TrafficSizeLimit>
+            </mode>
+        </channel>
+        <channel name="endpoint_ftp">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>10</TotalTimeout>
+                <ContentParsingTimeout>8</ContentParsingTimeout>
+                <TrafficSizeLimit>12</TrafficSizeLimit>
+            </mode>
+        </channel>
+        <channel name="endpoint_im">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block"/>
+        </channel>
+        <channel name="endpoint_smtp">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_custom">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_discovery">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_print">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>120</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>130</TotalTimeout>
+                <ContentParsingTimeout>120</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_usb_storage">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_network_storage">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_cd_writer">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_application">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_bluetooth">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_infrared">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="cloud_app">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="shared_file">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="active_sync">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+        <channel name="endpoint_local_storage">
+            <mode name="default">
+                <TotalTimeout>300</TotalTimeout>
+                <ContentParsingTimeout>90</ContentParsingTimeout>
+                <ContentParsingDepth>20</ContentParsingDepth>
+                <TrafficSizeLimit>100</TrafficSizeLimit>
+                <OCREnabled>true</OCREnabled>
+                <OCRProfile>0</OCRProfile>
+                <CacheEnabled>false</CacheEnabled>
+                <FPDBServerQueryEnabled>true</FPDBServerQueryEnabled>
+                <FPDBFilterQueryEnabled>false</FPDBFilterQueryEnabled>
+                <FastReturningEnabled>false</FastReturningEnabled>
+                <IncidentGeneratingIgnored>false</IncidentGeneratingIgnored>
+                <MaxConcurrentMatchingWorker>30</MaxConcurrentMatchingWorker>
+                <BasePriority>10</BasePriority>
+                <CacheMaxSize>10000</CacheMaxSize>
+                <QueryRemoteEnabled>false</QueryRemoteEnabled>
+            </mode>
+            <mode name="monitor"/>
+            <mode name="block">
+                <TotalTimeout>35</TotalTimeout>
+                <ContentParsingTimeout>26</ContentParsingTimeout>
+            </mode>
+        </channel>
+    </channels>
+</ContentAnalysisEngine>

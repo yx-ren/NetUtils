@@ -1,4 +1,2 @@
-ADD_SUBDIRECTORY(server)
-#ADD_SUBDIRECTORY(logger)
-#ADD_SUBDIRECTORY(tests)
-ADD_SUBDIRECTORY(async_client)
+add_subdirectory(services)
+#ADD_SUBDIRECTORY(async_client)

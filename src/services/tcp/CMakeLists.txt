@@ -1,5 +1,5 @@
 #ADD_EXECUTABLE(echo_server_threads svr.cpp)
-ADD_SUBDIRECTORY(threads)
+add_subdirectory(multi_threads)
 #FILE(GLOB IPV4
 #    "server_threads.cpp"
 #    "IPV4TcpServer.*"
