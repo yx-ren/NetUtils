@@ -3,7 +3,7 @@
 
 #define NU_SER_NAMESPACE __net_utils__::services
 
-#define NU_BEGIN namespace __net_utils__ { namespace services {
-#define NU_END } /*end of namespace services */ } /*end of namespace __net_utils__ */
+#define NU_SER_BEGIN namespace __net_utils__ { namespace services {
+#define NU_SER_END } /*end of namespace services */ } /*end of namespace __net_utils__ */
 
 #endif

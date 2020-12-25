@@ -1,5 +1,5 @@
-#ifndef __TCP_SERVER_H__
-#define __TCP_SERVER_H__
+#ifndef __NET_UTILS_SERVICES_TCP_SERVER_H__
+#define __NET_UTILS_SERVICES_TCP_SERVER_H__
 
 #define INVALID_FD              -1
 #define BACK_LOG                0xff
@@ -25,8 +25,10 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <NetUtils/services/common.h>
 
 
+NU_SER_BEGIN
 class TcpServer
 {
 public:
@@ -68,5 +70,7 @@ protected:
     int32_t mFd;
 };
 typedef std::shared_ptr<TcpServer> TcpServerPtr;
+
+NU_SER_END
 
 #endif

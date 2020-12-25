@@ -1,5 +1,5 @@
-#ifndef __SOCKET_CONTEXT_H
-#define __SOCKET_CONTEXT_H
+#ifndef __NET_UTILS_SERVICES_SOCKET_CONTEXT_H__
+#define __NET_UTILS_SERVICES_SOCKET_CONTEXT_H__
 
 #if defined(WIN32) || defined (_WIN32)
 #include <ws2tcpip.h>
@@ -13,6 +13,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #endif
+#include <NetUtils/services/common.h>
+
+NU_SER_BEGIN
 
 class SocketContext
 {
@@ -57,5 +60,7 @@ public:
     struct sockaddr_in6 mClientAddr;
 };
 typedef std::shared_ptr<IPV6SocketContext> IPV6SocketContextPtr;
+
+NU_SER_END
 
 #endif

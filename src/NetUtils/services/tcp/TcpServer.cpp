@@ -9,6 +9,8 @@
 #include <sys/socket.h>
 #endif
 
+NU_SER_BEGIN
+
 TcpServer::TcpServer(uint16_t port)
     : mIp(""), mPort(port), mFd(INVALID_FD)
 {}
@@ -84,3 +86,5 @@ void TcpServer::applyAcceptSockCBs(int acceptSock)
 
     return;
 }
+
+NU_SER_END

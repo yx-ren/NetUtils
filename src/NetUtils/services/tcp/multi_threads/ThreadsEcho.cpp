@@ -7,8 +7,8 @@
 #include <log4cxx/level.h>
 #include <log4cxx/consoleappender.h>
 #include <log4cxx/patternlayout.h>
-#include "IPV4ThreadsTcpServer.h"
-#include "IPV6ThreadsTcpServer.h"
+#include <NetUtils/services/tcp/multi_threads/IPV4ThreadsTcpServer.h>
+#include <NetUtils/services/tcp/multi_threads/IPV6ThreadsTcpServer.h>
 #include <common/base/logger/Logger.h>
 using namespace CBASE_LOGGER_NAMESPACE;
 
