@@ -10,6 +10,7 @@
 #include <log4cxx/patternlayout.h>
 
 #include <common/base/logger/Logger.h>
+#include <common/base/logger/LoggerManager.h>
 
 #include <NetUtils/services/common.h>
 #include <NetUtils/services/tcp/multi_threads/IPV4ThreadsTcpServer.h>
@@ -20,28 +21,27 @@ using namespace NU_SER_NAMESPACE;
 
 void init_log()
 {
-    using namespace log4cxx;
-    using namespace log4cxx::helpers;
+    LoggerParameter log_param;
+    log_param.module_tag = "SysLog";
+    log_param.file_path = "../var/log/multi_threads_echo.log";
+    Logger logger;
+    logger.init(log_param);
 
-    Properties props;
-    props.put("log4j.logger.SysLog", "INFO, console");
-    props.put("log4j.appender.console", "org.apache.log4j.ConsoleAppender");
-    props.put("log4j.appender.console.layout", "org.apache.log4j.PatternLayout");
-    props.put("log4j.appender.console.layout.ConversionPattern", "%d [%t] %-5p %.32c - %m%n");
-
-    PropertyConfigurator::configure(props);
-
-    auto logger = log4cxx::Logger::getLogger("SysLog");
-    LOG4CXX_INFO(logger, "this is a log generate by log4cxx");
+    LoggerManager::addLogger(logger.getRawLogger());
 }
 
 int main(int argc, const char* argv[])
 {
+#if 0
     //init_log();
     LoggerParameter logger_param;
     Logger logger;
     logger.init(logger_param);
     LOG4CXX_INFO(logger.get_logger(), "this is a log generate by cbase");
+#else
+    init_log();
+    CB_INFO("this is a log generate by cbase");
+#endif
 
     // check input arguments
     if (argc < 2)
