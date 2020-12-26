@@ -1,14 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
 
-#include <log4cxx/helpers/properties.h>
-#include <log4cxx/propertyconfigurator.h>
-#include <log4cxx/asyncappender.h>
-#include <log4cxx/fileappender.h>
-#include <log4cxx/level.h>
-#include <log4cxx/consoleappender.h>
-#include <log4cxx/patternlayout.h>
-
 #include <common/base/logger/Logger.h>
 #include <common/base/logger/LoggerManager.h>
 
@@ -32,16 +24,8 @@ void init_log()
 
 int main(int argc, const char* argv[])
 {
-#if 0
-    //init_log();
-    LoggerParameter logger_param;
-    Logger logger;
-    logger.init(logger_param);
-    LOG4CXX_INFO(logger.get_logger(), "this is a log generate by cbase");
-#else
     init_log();
     CB_INFO("this is a log generate by cbase");
-#endif
 
     // check input arguments
     if (argc < 2)

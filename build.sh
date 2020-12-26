@@ -45,6 +45,30 @@ if [ ${UNAME} ] ; then
     echo "build OS:[${UNAME}]"
 fi
 
+REDHAT_RELEASE=$(grep "Red Hat" /etc/redhat-release 2>/dev/null)
+if [ x"$REDHAT_RELEASE" != x"" ] ; then
+    LINUX_OS="RHEL"
+else
+    LINUX_OS="Debian"
+fi
+echo "Linux OS: $LINUX_OS"
+
+echo "install the dependency thirdpart libraries ..."
+if [ ${UNAME} = "Linux" ] ; then
+    if [ ${LINUX_OS} = "RHEL" ]; then
+        ./pre-build-yum.sh
+    else
+        ./pre-build.sh
+    fi
+fi
+
+echo "build submodule"
+./submod_build.sh
+if [ $? != 0 ]; then
+    echo "build submodule failed"
+    exit 1
+fi
+
 echo "remove build directory:[${BUILD_DIR}]"
 rm -rf ${BUILD_DIR}
 mkdir ${BUILD_DIR}

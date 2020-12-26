@@ -1,6 +1,12 @@
 #/bin/bash
 submod_common=./.submodule/common
 pushd $submod_common
+git pull
+if [ $? != 0 ]; then
+    echo "git pull base: $submod_common faild"
+    exit 1
+fi
+
 ./build.sh
 
 submod_common_build_dir=./build

@@ -1,7 +1,6 @@
 #ifndef __NET_UTILS_SERVICES_TCP_SERVER_H__
 #define __NET_UTILS_SERVICES_TCP_SERVER_H__
 
-#define INVALID_FD              -1
 #define BACK_LOG                0xff
 #define MAX_MESSAGEBUFF_LEN     1024 * 1024 * 1
 #if (defined WIN32) || (defined _WIN32)
