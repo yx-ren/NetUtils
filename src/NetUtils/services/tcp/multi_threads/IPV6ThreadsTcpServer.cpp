@@ -1,7 +1,8 @@
-#include "IPV6ThreadsTcpServer.h"
-
+#include <NetUtils/services/tcp/multi_threads/IPV6ThreadsTcpServer.h>
 #include <iostream>
 #include <string.h>
+
+NU_SER_BEGIN
 
 void IPV6ThreadsClientHandle::doWork(void)
 {
@@ -280,3 +281,5 @@ void IPV6ThreadsTcpServer::handleClient(SocketContextPtr context)
 
     return;
 }
+
+NU_SER_END

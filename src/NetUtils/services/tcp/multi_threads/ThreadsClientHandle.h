@@ -1,5 +1,5 @@
-#ifndef __THREADS_CLIENT_HANDEL_H__
-#define __THREADS_CLIENT_HANDEL_H__
+#ifndef __NET_UTILS_SERVICES_THREADS_CLIENT_HANDEL_H__
+#define __NET_UTILS_SERVICES_THREADS_CLIENT_HANDEL_H__
 
 #include <memory>
 #include <string.h>
@@ -25,7 +25,9 @@
 #include <unistd.h>
 #endif
 
-#include <server/SocketContext.h>
+#include <NetUtils/services/tcp/SocketContext.h>
+
+NU_SER_BEGIN
 
 class ThreadsClientHandle
 {
@@ -54,5 +56,7 @@ protected:
     std::queue<std::shared_ptr<std::string>> mMessageQueue;
 };
 typedef std::shared_ptr<ThreadsClientHandle> ThreadsClientHandlePtr;
+
+NU_SER_END
 
 #endif

@@ -1,10 +1,12 @@
-#include "ThreadsClientHandle.h"
+#include <NetUtils/services/tcp/multi_threads/ThreadsClientHandle.h>
 
 #include <iostream>
 #include <ostream>
 #include <sstream>
 #include <iomanip>
 #include <string.h>
+
+NU_SER_BEGIN
 
 std::string ThreadsClientHandle::dumpHex(const char* buf, int len)
 {
@@ -18,3 +20,5 @@ std::string ThreadsClientHandle::dumpHex(const char* buf, int len)
 
     return oss.str();
 }
+
+NU_SER_END

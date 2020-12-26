@@ -1,9 +1,11 @@
-#ifndef __IPV4_THREADS_TCP_SERVER_H__
-#define __IPV4_THREADS_TCP_SERVER_H__
+#ifndef __NET_UTILS_SERVICES_IPV4_THREADS_TCP_SERVER_H__
+#define __NET_UTILS_SERVICES_IPV4_THREADS_TCP_SERVER_H__
 
-#include <server/TcpServer.h>
-#include <server/SocketContext.h>
-#include "ThreadsClientHandle.h"
+#include <NetUtils/services/tcp/TcpServer.h>
+#include <NetUtils/services/tcp/SocketContext.h>
+#include <NetUtils/services/tcp/multi_threads/ThreadsClientHandle.h>
+
+NU_SER_BEGIN
 
 class IPV4ThreadsClientHandle : public ThreadsClientHandle
 {
@@ -46,5 +48,7 @@ protected:
     virtual void handleClient(SocketContextPtr context);
 };
 typedef std::shared_ptr<IPV4ThreadsTcpServer> IPV4ThreadsTcpServerPtr;
+
+NU_SER_END
 
 #endif

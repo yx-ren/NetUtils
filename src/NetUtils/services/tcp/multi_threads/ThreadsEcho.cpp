@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
+
 #include <log4cxx/helpers/properties.h>
 #include <log4cxx/propertyconfigurator.h>
 #include <log4cxx/asyncappender.h>
@@ -7,10 +8,15 @@
 #include <log4cxx/level.h>
 #include <log4cxx/consoleappender.h>
 #include <log4cxx/patternlayout.h>
+
+#include <common/base/logger/Logger.h>
+
+#include <NetUtils/services/common.h>
 #include <NetUtils/services/tcp/multi_threads/IPV4ThreadsTcpServer.h>
 #include <NetUtils/services/tcp/multi_threads/IPV6ThreadsTcpServer.h>
-#include <common/base/logger/Logger.h>
+
 using namespace CBASE_LOGGER_NAMESPACE;
+using namespace NU_SER_NAMESPACE;
 
 void init_log()
 {

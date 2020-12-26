@@ -27,7 +27,6 @@
 #include <vector>
 #include <NetUtils/services/common.h>
 
-
 NU_SER_BEGIN
 class TcpServer
 {
