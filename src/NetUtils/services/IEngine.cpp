@@ -18,4 +18,14 @@ bool IEngine::restart()
     return true;
 }
 
+void IEngine::setNextEngine(std::shared_ptr<IEngine> engine)
+{
+    mNextEngine = engine;
+}
+
+std::shared_ptr<IEngine> IEngine::getNextEngine() const
+{
+    return mNextEngine;
+}
+
 NU_SER_END

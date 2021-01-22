@@ -13,7 +13,6 @@ class IEngine : public CBASE_NAMESPACE::IBaseService
 public:
     IEngine(const char *tag)
         : CBASE_NAMESPACE::IBaseService(tag)
-        , mNextEngine(nullptr)
     {}
 
     virtual ~IEngine() {}
@@ -21,6 +20,10 @@ public:
     virtual bool restart();
 
     virtual bool process(IContextSPtr context) = 0;
+
+    virtual void setNextEngine(const std::shared_ptr<IEngine> engine);
+
+    virtual std::shared_ptr<IEngine> getNextEngine() const;
 
 protected:
     std::shared_ptr<IEngine> mNextEngine;

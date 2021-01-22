@@ -19,22 +19,10 @@ int main(int argc, const char* argv[])
 
     CB_INFO("start engine:" << argv[0]);
 
-#if 0
-    ITcpBrokerServerEngineSptr bro_server(std::make_shared<ThreadsTcpBroServer>(
-                "echo_engine"
-                , protocol::PROTOCOL_TYPE::PT_TCP_IPV4
-                , "127.0.0.1"
-                , 9001
-                ));
-    bro_server->start();
-#endif
-
-#if 0
-#else
     std::thread tcp_echo_thread = std::thread(
         []()
         {
-            ITcpBrokerServerEngineSptr bro_server(std::make_shared<ThreadsTcpBroServer>(
+            ITcpBrokerServerEngineSPtr bro_server(std::make_shared<ThreadsTcpBroServer>(
                     "echo_engine"
                     , "127.0.0.1"
                     , 9001
@@ -45,7 +33,7 @@ int main(int argc, const char* argv[])
     std::thread tcp6_echo_thread = std::thread(
         []()
         {
-            ITcpBrokerServerEngineSptr bro_server(std::make_shared<ThreadsTcp6BroServer>(
+            ITcpBrokerServerEngineSPtr bro_server(std::make_shared<ThreadsTcp6BroServer>(
                     "echo_engine"
                     , "::1"
                     , 9001
@@ -55,8 +43,6 @@ int main(int argc, const char* argv[])
 
     tcp_echo_thread.join();
     tcp6_echo_thread.join();
-
-#endif
 
     return 0;
 }

@@ -67,8 +67,8 @@ protected:
     mutable CBASE_NAMESPACE::rwmutex mRWLock;
     SocketContextQueue mSocketContextQueue;
 };
-typedef std::shared_ptr<ITcpBrokerServerEngine> ITcpBrokerServerEngineSptr;
-typedef std::weak_ptr<ITcpBrokerServerEngine> ITcpBrokerServerEngineWptr;
+typedef std::shared_ptr<ITcpBrokerServerEngine> ITcpBrokerServerEngineSPtr;
+typedef std::weak_ptr<ITcpBrokerServerEngine> ITcpBrokerServerEngineWPtr;
 
 NU_SER_END
 
