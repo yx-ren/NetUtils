@@ -15,18 +15,18 @@ file(GLOB SERVICE_SOURCE_FILE
     )
 
 file(GLOB SERVICE_TCP_SOURCE_FILE
-    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/tcp/ITcpBrokerServerEngine.cpp
+    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/io_mode/ITcpBrokerServerEngine.cpp
     )
 
 file(GLOB SERVICE_TCP_MULTI_THREADS_SOURCE_FILE
-    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/tcp/multi_threads/ThreadsTcpBroServer.*
-    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/tcp/multi_threads/ThreadsTcp6BroServer.*
-    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/tcp/multi_threads/ThreadsTcpBroProcessor.*
-    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/tcp/multi_threads/ThreadsTcpBroWorker.*
+    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/io_mode/multi_threads/ThreadsTcpBroServer.*
+    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/io_mode/multi_threads/ThreadsTcp6BroServer.*
+    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/io_mode/multi_threads/ThreadsTcpBroProcessor.*
+    ${PROJECT_SOURCE_DIR}/src/NetUtils/services/io_mode/multi_threads/ThreadsTcpBroWorker.*
     )
 
 add_executable(echo_server_threads
-    ThreadsEchoEngine.cpp
+    ThsEchoService.cpp
     ${COMMON_SOURCE_FILE}
     ${SERVICE_SOURCE_FILE}
     ${SERVICE_TCP_SOURCE_FILE}

@@ -1,8 +1,8 @@
 #include <thread>
 #include <common/base/logger/Logger.h>
 #include <common/base/logger/LoggerManager.h>
-#include <NetUtils/services/tcp/multi_threads/ThreadsTcpBroServer.h>
-#include <NetUtils/services/tcp/multi_threads/ThreadsTcp6BroServer.h>
+#include <NetUtils/services/io_mode/multi_threads/ThreadsTcpBroServer.h>
+#include <NetUtils/services/io_mode/multi_threads/ThreadsTcp6BroServer.h>
 
 using namespace NU_SER_NAMESPACE;
 using namespace CBASE_NAMESPACE;

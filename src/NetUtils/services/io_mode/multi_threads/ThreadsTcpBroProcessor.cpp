@@ -1,7 +1,7 @@
-#include <NetUtils/services/tcp/multi_threads/ThreadsTcpBroProcessor.h>
+#include <NetUtils/services/io_mode/multi_threads/ThreadsTcpBroProcessor.h>
 #include <memory>
 #include <thread>
-#include <NetUtils/services/tcp/multi_threads/ThreadsTcpBroWorker.h>
+#include <NetUtils/services/io_mode/multi_threads/ThreadsTcpBroWorker.h>
 
 NU_SER_BEGIN
 

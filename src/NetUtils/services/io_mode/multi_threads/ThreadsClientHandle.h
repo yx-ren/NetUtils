@@ -25,7 +25,7 @@
 #include <unistd.h>
 #endif
 
-#include <NetUtils/services/tcp/SocketContext.h>
+#include <NetUtils/services/io_mode/SocketContext.h>
 
 NU_SER_BEGIN
 

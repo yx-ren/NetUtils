@@ -1,8 +1,8 @@
 #ifndef __NET_UTILS_SERVICES_THREADS_TCP6_BRO_SERVER_H__
 #define __NET_UTILS_SERVICES_THREADS_TCP6_BRO_SERVER_H__
 
-#include <NetUtils/services/tcp/ITcpBrokerServerEngine.h>
-#include <NetUtils/services/tcp/multi_threads/ThreadsTcpBroProcessor.h>
+#include <NetUtils/services/io_mode/ITcpBrokerServerEngine.h>
+#include <NetUtils/services/io_mode/multi_threads/ThreadsTcpBroProcessor.h>
 
 NU_SER_BEGIN
 

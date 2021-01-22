@@ -1,4 +1,4 @@
-#include <NetUtils/services/tcp/multi_threads/ThreadsTcpBroServer.h>
+#include <NetUtils/services/io_mode/multi_threads/ThreadsTcp6BroServer.h>
 #include <common/base/logger/LoggerManager.h>
 
 using namespace CBASE_NAMESPACE;
@@ -6,21 +6,21 @@ using namespace CBASE_LOGGER_NAMESPACE;
 
 NU_SER_BEGIN
 
-bool ThreadsTcpBroServer::process(IContextSPtr context)
+bool ThreadsTcp6BroServer::process(IContextSPtr context)
 {
     return mClientProcessor->process(context);
 }
 
-bool ThreadsTcpBroServer::run()
+bool ThreadsTcp6BroServer::run()
 {
     while (true)
     {
-        struct sockaddr_in cli_addr;
-        socklen_t ipv4addr_len = sizeof(sockaddr_in);
-        int client_socket = accept(mFd, (sockaddr*)&cli_addr, &ipv4addr_len);
+        struct sockaddr_in6 cli_addr;
+        socklen_t ipv6addr_len = sizeof(sockaddr_in6);
+        int client_socket = accept(mFd, (struct sockaddr*)&cli_addr, &ipv6addr_len);
         if (client_socket < 0)
         {
-            CBT_WARN("ThreadsTcpBroServer", "run() accept() cause error, "
+            CBT_WARN("ThreadsTcp6BroServer", "run() accept() cause error, "
                 "error code: " << errno << ", "
                 "engine:" << toString() << " will to exit");
             return false;
@@ -50,9 +50,10 @@ bool ThreadsTcpBroServer::run()
         }
 #endif
 
-        IPV4SocketContextPtr sock_context(new IPV4SocketContext(client_socket, ntohs(cli_addr.sin_port), cli_addr));
-        sock_context->mClientAddrStr = inet_ntoa(sock_context->mClientAddr.sin_addr);
-        CBT_DEBUG("ThreadsTcpBroServer", "run() new client arrived, accept the connection, "
+        IPV6SocketContextPtr sock_context(new IPV6SocketContext(client_socket, ntohs(cli_addr.sin6_port), cli_addr));
+        char buf[0xff] = {0};
+        sock_context->mClientAddrStr = inet_ntop(AF_INET6, &cli_addr.sin6_addr, buf, sizeof(buf));
+        CBT_DEBUG("ThreadsTcp6BroServer", "run() new client arrived, accept the connection, "
                 "client info:" << sock_context->toString());
         {
             write_lock wlock(mRWLock);
@@ -61,7 +62,7 @@ bool ThreadsTcpBroServer::run()
 
         if (!process(sock_context))
         {
-            CBT_WARN("ThreadsTcpBroServer", "run() failed to process client io, "
+            CBT_WARN("ThreadsTcp6BroServer", "run() failed to process client io, "
                     "client info:" << sock_context->toString());
         }
     }

@@ -1,13 +1,13 @@
-#include <NetUtils/services/tcp/multi_threads/IPV6ThreadsTcpServer.h>
+#include <NetUtils/services/io_mode/multi_threads/IPV4ThreadsTcpServer.h>
 #include <iostream>
 #include <string.h>
 
 NU_SER_BEGIN
 
-void IPV6ThreadsClientHandle::doWork(void)
+void IPV4ThreadsClientHandle::doWork(void)
 {
-    std::thread threadHandleRead(std::bind(&IPV6ThreadsClientHandle::handleReadEvent, this));
-    std::thread threadHandleWrite(std::bind(&IPV6ThreadsClientHandle::handleWriteEvent, this));
+    std::thread threadHandleRead(std::bind(&IPV4ThreadsClientHandle::handleReadEvent, this));
+    std::thread threadHandleWrite(std::bind(&IPV4ThreadsClientHandle::handleWriteEvent, this));
 
     threadHandleRead.join();
     threadHandleWrite.join();
@@ -15,21 +15,19 @@ void IPV6ThreadsClientHandle::doWork(void)
     return;
 }
 
-void IPV6ThreadsClientHandle::handleReadEvent(void)
+void IPV4ThreadsClientHandle::handleReadEvent(void)
 {
-    char buf[0xff] = {0};
-    IPV6SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV6SocketContext>(mContext);
+    IPV4SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        std::cerr << "SocketContextPtr -> IPV6SocketContextPtr failed" << std::endl;
+        std::cerr << "SocketContextPtr -> IPV4SocketContextPtr failed" << std::endl;
         throw std::runtime_error("invalid cast");
     }
 
     std::cout << "start handle read event thread, "
         << "client fd:[" << socket_context->mClientFd << "], "
-        //<< "client addr:[" << inet_ntoa(socket_context->mClientAddr.sin_addr) << "], "
-        << "client addr:[" << inet_ntop(AF_INET6, &socket_context->mClientAddr.sin6_addr, buf, sizeof(buf)) << "], "
-        << "client port:[" << std::dec << ntohs(socket_context->mClientAddr.sin6_port) << "]" << std::endl;
+        << "client addr:[" << inet_ntoa(socket_context->mClientAddr.sin_addr) << "], "
+        << "client port:[" << std::dec << ntohs(socket_context->mClientAddr.sin_port) << "]" << std::endl;
 
     while (true)
     {
@@ -54,15 +52,16 @@ void IPV6ThreadsClientHandle::handleReadEvent(void)
             break;
         }
 
-        std::shared_ptr<std::string> recv_msg(new std::string(recv_msg_buf));
+        std::shared_ptr<std::string> recv_msg(new std::string(recv_msg_buf, rb));
 
-        std::cout << "server: recv from "
-            << "address:[" << inet_ntop(AF_INET6, &socket_context->mClientAddr.sin6_addr, buf, sizeof(buf)) << "], "
-            << "port:[" << std::dec << ntohs(socket_context->mClientAddr.sin6_port) << "], "
+#if 0
+        std::cout << "server: recv from address:[" << inet_ntoa(socket_context->mClientAddr.sin_addr) << "], "
+            << "port:[" << std::dec << ntohs(socket_context->mClientAddr.sin_port) << "], "
             << "bytes:[" << rb << "], "
             << "msg:[" << *recv_msg << "], "
             << "hex buf:\n"
             << dumpHex(recv_msg->c_str(), recv_msg->size()) << std::endl << std::endl;
+#endif
 
         std::unique_lock<std::mutex> lk(mMutex);
         mMessageQueue.push(recv_msg);
@@ -78,26 +77,24 @@ void IPV6ThreadsClientHandle::handleReadEvent(void)
     return;
 }
 
-void IPV6ThreadsClientHandle::handleWriteEvent(void)
+void IPV4ThreadsClientHandle::handleWriteEvent(void)
 {
-    IPV6SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV6SocketContext>(mContext);
+    IPV4SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        std::cerr << "SocketContextPtr -> IPV6SocketContextPtr failed" << std::endl;
+        std::cerr << "SocketContextPtr -> IPV4SocketContextPtr failed" << std::endl;
         throw std::runtime_error("invalid cast");
     }
 
-    char buf[0xff] = {0};
     std::cout << "start handle write event thread, "
         << "client fd:[" << socket_context->mClientFd << "], "
-        << "client addr:[" << inet_ntop(AF_INET6, &socket_context->mClientAddr.sin6_addr, buf, sizeof(buf)) << "], "
-        << "client port:[" << std::dec << ntohs(socket_context->mClientAddr.sin6_port) << "]" << std::endl;
+        << "client addr:[" << inet_ntoa(socket_context->mClientAddr.sin_addr) << "], "
+        << "client port:[" << std::dec << ntohs(socket_context->mClientAddr.sin_port) << "]" << std::endl;
 
     while (true)
     {
         std::unique_lock<std::mutex> lk(mMutex);
-        if (mMessageQueue.empty())
-            mCond.wait(lk);
+        mCond.wait(lk, [&](){return !mMessageQueue.empty();});
 
         if (socket_context->mClientFd == INVALID_FD)
         {
@@ -112,7 +109,8 @@ void IPV6ThreadsClientHandle::handleWriteEvent(void)
         size_t total_send = 0;
         while (total_send < send_msg->size())
         {
-            size_t sb = send(socket_context->mClientFd, send_msg->data() + total_send, send_msg->size() - total_send, 0);
+            size_t sb = send(socket_context->mClientFd,
+                send_msg->data() + total_send, send_msg->size() - total_send, MSG_NOSIGNAL);
             if (sb < 0)
             {
 #ifndef WIN32
@@ -124,34 +122,44 @@ void IPV6ThreadsClientHandle::handleWriteEvent(void)
 #endif
                 std::cerr << "server: call send() failed, "
                     << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
+
+                close(socket_context->mClientFd);
+                socket_context->mClientFd = INVALID_FD;
                 break;
             }
             else if (sb == 0)
             {
                 std::cerr << "server: call send() failed, "
                     << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
+
+                close(socket_context->mClientFd);
+                socket_context->mClientFd = INVALID_FD;
                 break;
             }
 
-            std::cout << "server: send to "
-                << "address:[" << inet_ntop(AF_INET6, &socket_context->mClientAddr.sin6_addr, buf, sizeof(buf)) << "], "
-                << "port:[" << ntohs(socket_context->mClientAddr.sin6_port) << "], "
+#if 0
+            std::cout << "server: send to address:[" << inet_ntoa(socket_context->mClientAddr.sin_addr) << "], "
+                << "port:[" << ntohs(socket_context->mClientAddr.sin_port) << "], "
                 << "bytes:[" << sb << "], "
                 << "msg:[" << *send_msg << "], "
                 << "hex buf:\n"
                 << dumpHex(send_msg->c_str(), send_msg->size()) << std::endl << std::endl;
+#endif
 
             total_send += sb;
         }
-    }
 
-    CLOSE_SOCKET(socket_context->mClientFd);
-    socket_context->mClientFd = INVALID_FD;
+        if (socket_context->mClientFd == INVALID_FD)
+        {
+            std::cout << "write thread has been done" << std::endl;
+            break;
+        }
+    }
 
     return;
 }
 
-bool IPV6ThreadsTcpServer::initSocket(void)
+bool IPV4ThreadsTcpServer::initSocket(void)
 {
 #ifdef WIN32
     // init win32 socket
@@ -165,7 +173,7 @@ bool IPV6ThreadsTcpServer::initSocket(void)
 #endif
 
     // create server socket
-    int svr_sock = socket(AF_INET6, SOCK_STREAM, 0);
+    int svr_sock = socket(AF_INET, SOCK_STREAM, 0);
     if (svr_sock < 0)
     {
         std::cerr << "server: call socket() failed, "
@@ -176,39 +184,22 @@ bool IPV6ThreadsTcpServer::initSocket(void)
     int option = 1;
     if (setsockopt(svr_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&option, sizeof(option)) < 0)
     {
-        std::cerr << "server: call setsockopt() failed, for [SO_REUSEADDR], "
+        std::cerr << "server: call setsockopt() failed, "
             << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
 
         return false;
     }
 
-    if (setsockopt(svr_sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&option, sizeof(option)) < 0)
-    {
-        std::cerr << "server: call setsockopt() failed, for [IPV6_V6ONLY], "
-            << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
-
-        return false;
-    }
-
-    std::cout << "server: create ipv6 tcp server socket......" << std::endl;
+    std::cout << "server: create ipv4 tcp server socket......" << std::endl;
 
     // -------------------- //
 
     // init sockaddr_in struct
-    struct sockaddr_in6 server_addr;
+    struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin6_family      = AF_INET6;
-    server_addr.sin6_port        = htons(mPort);
-    if (mIp.empty())
-        server_addr.sin6_addr = in6addr_any;
-    else
-    {
-        if (inet_pton(AF_INET6, mIp.c_str(), &server_addr.sin6_addr) != 1)
-        {
-            std::cerr << "server: call inet_pton() failed, ip:[" << mIp << "]" << std::endl;
-            return -1;
-        }
-    }
+    server_addr.sin_family      = AF_INET;
+    server_addr.sin_addr.s_addr = mIp.empty() ? INADDR_ANY : inet_addr(mIp.c_str());
+    server_addr.sin_port        = htons(mPort);
 
     // bind
     if (bind(svr_sock, (sockaddr*)&server_addr, sizeof(server_addr)) < 0)
@@ -219,7 +210,7 @@ bool IPV6ThreadsTcpServer::initSocket(void)
     }
 
     std::cout << "server: bind the local address, "
-        << "ip:[" << (mIp.empty() ? "::1" : mIp) << "], "
+        << "ip:[" << (mIp.empty() ? "127.0.0.1" : mIp) << "], "
         << "port:[" << std::dec << mPort << "]" << std::endl;
 
     // -------------------- //
@@ -238,13 +229,13 @@ bool IPV6ThreadsTcpServer::initSocket(void)
     return true;
 }
 
-bool IPV6ThreadsTcpServer::run(void)
+bool IPV4ThreadsTcpServer::run(void)
 {
     while (true)
     {
-        struct sockaddr_in6 cli_addr;
-        socklen_t ipv6addr_len = sizeof(sockaddr_in6);
-        int client_socket = accept(mFd, (struct sockaddr*)&cli_addr, &ipv6addr_len);
+        struct sockaddr_in cli_addr;
+        socklen_t ipv4addr_len = sizeof(sockaddr_in);
+        int client_socket = accept(mFd, (sockaddr*)&cli_addr, &ipv4addr_len);
         if (client_socket < 0)
         {
             std::cerr << "server: call accept() failed, "
@@ -252,28 +243,46 @@ bool IPV6ThreadsTcpServer::run(void)
             return false;
         }
 
-        char buf[0xff] = {0};
         std::cout << "server: accept from "
-            << ":[" << inet_ntop(AF_INET6, &cli_addr.sin6_addr, buf, sizeof(buf)) << "]"
-            //<< ":[" << cli_addr.sin6_port << "] client" << std::endl;
-            << ":[" << ntohs(cli_addr.sin6_port) << "] client" << std::endl;
+            << ":[" << inet_ntoa(cli_addr.sin_addr) << "]"
+            << ":[" << ntohs(cli_addr.sin_port) << "] client" << std::endl;
 
-        IPV6SocketContextPtr context(new IPV6SocketContext(cli_addr, client_socket));
+        struct timeval timeout;
+        timeout.tv_sec = 10;
+        timeout.tv_usec = 0;
+
+        if (setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO,
+            (char *)&timeout, sizeof(timeout)) < 0)
+        {
+            std::cerr << "server: call setsockopt() failed, for set SO_RCVTIMEO"
+                << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
+            return false;
+        }
+
+        if (setsockopt(client_socket, SOL_SOCKET, SO_SNDTIMEO,
+            (char *)&timeout, sizeof(timeout)) < 0)
+        {
+            std::cerr << "server: call setsockopt() failed, for set SO_SNDTIMEO"
+                << "err code:[" << GET_LAST_SOCKET_ERROR << "]" << std::endl;
+            return false;
+        }
+
+        IPV4SocketContextPtr context(new IPV4SocketContext(cli_addr, client_socket));
         std::shared_ptr<std::thread> threadHandleClient(new std::thread(
-            std::bind(&IPV6ThreadsTcpServer::handleClient, this, context)));
+            std::bind(&IPV4ThreadsTcpServer::handleClient, this, context)));
         threadHandleClient->detach();
     }
 
     return true;
 }
 
-void IPV6ThreadsTcpServer::handleClient(SocketContextPtr context)
+void IPV4ThreadsTcpServer::handleClient(SocketContextPtr context)
 {
     std::cout << "server: thread:[" << std::hex << std::this_thread::get_id() << "], "
         << "provide service" << std::endl;
 
-    ThreadsClientHandlePtr clientHandle(new IPV6ThreadsClientHandle(
-        std::dynamic_pointer_cast<IPV6SocketContext>(context)));
+    ThreadsClientHandlePtr clientHandle(new IPV4ThreadsClientHandle(
+        std::dynamic_pointer_cast<IPV4SocketContext>(context)));
     clientHandle->doWork();
 
     std::cout << "server: thread:[" << std::hex << std::this_thread::get_id() << "], "

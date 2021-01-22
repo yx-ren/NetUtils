@@ -5,8 +5,8 @@
 #include <common/base/logger/LoggerManager.h>
 
 #include <NetUtils/services/common.h>
-#include <NetUtils/services/tcp/multi_threads/IPV4ThreadsTcpServer.h>
-#include <NetUtils/services/tcp/multi_threads/IPV6ThreadsTcpServer.h>
+#include <NetUtils/services/io_mode/multi_threads/IPV4ThreadsTcpServer.h>
+#include <NetUtils/services/io_mode/multi_threads/IPV6ThreadsTcpServer.h>
 
 using namespace CBASE_LOGGER_NAMESPACE;
 using namespace NU_SER_NAMESPACE;

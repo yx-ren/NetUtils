@@ -1,9 +1,9 @@
 #ifndef __NET_UTILS_SERVICES_IPV4_THREADS_TCP_SERVER_H__
 #define __NET_UTILS_SERVICES_IPV4_THREADS_TCP_SERVER_H__
 
-#include <NetUtils/services/tcp/TcpServer.h>
-#include <NetUtils/services/tcp/SocketContext.h>
-#include <NetUtils/services/tcp/multi_threads/ThreadsClientHandle.h>
+#include <NetUtils/services/io_mode/TcpServer.h>
+#include <NetUtils/services/io_mode/SocketContext.h>
+#include <NetUtils/services/io_mode/multi_threads/ThreadsClientHandle.h>
 
 NU_SER_BEGIN
 
