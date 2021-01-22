@@ -44,8 +44,7 @@ public:
     std::string toString() const override
     {
         std::ostringstream oss;
-        oss << "client socket context info"
-            << ", fd: " << mClientFd
+        oss << "fd: " << mClientFd
             << ", port:" << mPort
             << ", address:" << mClientAddrStr
             ;
@@ -59,8 +58,12 @@ public:
     std::vector<unsigned char> mRequest;
     std::vector<unsigned char> mResponse;
     std::mutex mMutex;
+#ifdef BUFF_OBJECT
+    // TODO......
+#else
     std::mutex mRequestMutex;
     std::mutex mResponseMutex;
+#endif
 };
 typedef std::shared_ptr<SocketContext> SocketContextPtr;
 
