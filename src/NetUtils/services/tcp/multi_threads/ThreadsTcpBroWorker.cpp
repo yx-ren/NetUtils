@@ -77,6 +77,7 @@ void ThreadsTcpBroWorker::handleReadEvent()
                 }
                 CBT_DEBUG("ThreadsTcpBroWorker()", "handleReadEvent() recv thread was quiting, "
                     << "client info:" << socket_context->toString());
+                enableWriteEvent();
                 mSendThread.interrupt();
                 mWriteCond.notify_one();
             });
@@ -159,6 +160,7 @@ void ThreadsTcpBroWorker::handleWriteEvent()
                     close(socket_context->mClientFd);
                     socket_context->mClientFd = INVALID_FD;
                 }
+                enableReadEvent();
                 CBT_DEBUG("ThreadsTcpBroWorker()", "handleWriteEvent() send thread was quiting, "
                     << "client info:" << socket_context->toString());
                 mRecvThread.interrupt();
