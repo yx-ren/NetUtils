@@ -1,0 +1,13 @@
+#ifndef __NET_UTILS_SERVICES_THREADS_ECHO_ENGINE_PROCESSOR_H__
+#define __NET_UTILS_SERVICES_THREADS_ECHO_ENGINE_PROCESSOR_H__
+
+NU_SER_BEGIN
+
+class ThreadsEchoEngineProcessor
+{
+
+};
+
+NU_SER_END
+
+#endif
