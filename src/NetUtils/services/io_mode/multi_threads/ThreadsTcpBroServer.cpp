@@ -64,6 +64,13 @@ bool ThreadsTcpBroServer::run()
             CBT_WARN("ThreadsTcpBroServer", "run() failed to process client io, "
                     "client info:" << sock_context->toString());
         }
+
+        if (mNextEngine)
+        {
+            CBT_DEBUG("ThreadsTcpBroServer", "run() next engine was enabled, transaction will continue processed"
+                    ", next engine info:" << mNextEngine->toString());
+            mNextEngine->process(sock_context);
+        }
     }
 
     return true;

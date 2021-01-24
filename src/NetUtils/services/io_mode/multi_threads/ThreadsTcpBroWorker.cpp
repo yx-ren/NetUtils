@@ -21,6 +21,7 @@ NU_SER_BEGIN
 bool ThreadsTcpBroWorker::doWork()
 {
     CBT_DEBUG("ThreadsTcpBroWorker", "doWork() worker was running");
+
     mRecvThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleReadEvent, this));
     mSendThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleWriteEvent, this));
 

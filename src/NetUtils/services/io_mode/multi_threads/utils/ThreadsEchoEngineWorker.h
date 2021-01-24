@@ -10,23 +10,18 @@ class ThreadsEchoEngineWorker : public IWorker
 public:
     ThreadsTcpBroWorker()
         : IWorker()
-        , mRunning(true)
-        , mIsReadEnabled(true)
-        , mIsWriteEnabled(false)
     {}
 
     ThreadsTcpBroWorker(IContextSPtr context)
         : IWorker(context)
-        , mRunning(true)
-        , mIsReadEnabled(true)
-        , mIsWriteEnabled(false)
     {}
 
     virtual ~ThreadsTcpBroWorker() {}
 
     virtual bool doWork() override;
-
 };
+typedef std::shared_ptr<ThreadsEchoEngineWorker> ThreadsEchoEngineWorkerSPtr;
+typedef std::weak_ptr<ThreadsEchoEngineWorker> ThreadsEchoEngineWorkerWPtr;
 
 NU_SER_END
 

@@ -14,14 +14,12 @@ class ThreadsTcpBroWorker : public IWorker
 public:
     ThreadsTcpBroWorker()
         : IWorker()
-        , mRunning(true)
         , mIsReadEnabled(true)
         , mIsWriteEnabled(false)
     {}
 
     ThreadsTcpBroWorker(IContextSPtr context)
         : IWorker(context)
-        , mRunning(true)
         , mIsReadEnabled(true)
         , mIsWriteEnabled(false)
     {}
@@ -46,7 +44,6 @@ protected:
     virtual void handleWriteEvent();
 
 private:
-    bool mRunning;
     bool mIsReadEnabled;
     bool mIsWriteEnabled;
     std::mutex mReadMutex;
