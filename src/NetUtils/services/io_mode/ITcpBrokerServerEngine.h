@@ -11,6 +11,8 @@ using NU_NAMESPACE::protocol;
 
 NU_SER_BEGIN
 
+typedef std::function<void(IOBufferSPtr)> handelNewClient;
+
 class ITcpBrokerServerEngine : public IEngine
 {
 public:
@@ -46,6 +48,8 @@ public:
     uint32_t getConnections() const;
     uint32_t getMaxConnections() const;
 
+    void regiesterNewClientCB(handelNewClient cb);
+
 protected:
     virtual bool initIPV4Socket(int& fd);
     virtual bool initIPV6Socket(int& fd);
@@ -66,6 +70,7 @@ protected:
     uint32_t mMaxConnections;
     mutable CBASE_NAMESPACE::rwmutex mRWLock;
     SocketContextQueue mSocketContextQueue;
+    handelNewClient mHandleNewClientCb;
 };
 typedef std::shared_ptr<ITcpBrokerServerEngine> ITcpBrokerServerEngineSPtr;
 typedef std::weak_ptr<ITcpBrokerServerEngine> ITcpBrokerServerEngineWPtr;

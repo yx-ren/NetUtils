@@ -139,6 +139,11 @@ uint32_t ITcpBrokerServerEngine::getMaxConnections() const
     return mMaxConnections;
 }
 
+void ITcpBrokerServerEngine::regiesterNewClientCB(handelNewClient cb)
+{
+    mHandleNewClientCb = cb;
+}
+
 bool ITcpBrokerServerEngine::initIPV4Socket(int& fd)
 {
 #ifdef WIN32

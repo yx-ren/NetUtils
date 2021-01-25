@@ -65,6 +65,9 @@ bool ThreadsTcpBroServer::run()
                     "client info:" << sock_context->toString());
         }
 
+        if (mHandleNewClientCb)
+            mHandleNewClientCb(sock_context);
+
         if (mNextEngine)
         {
             CBT_DEBUG("ThreadsTcpBroServer", "run() next engine was enabled, transaction will continue processed"
