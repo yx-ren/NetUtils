@@ -43,14 +43,39 @@ class SocketBuffer
 public:
     SocketBuffer(SocketContextPtr context)
         : mSockContext(context)
+        , mReadBuffer(nullptr)
+        , mWriteBuffer(nullptr)
+        , mExternelReadCb(nullptr)
+        , mExternelWriteCb(nullptr)
     {}
 
+    /*
+     * sync io, non block, read or write directly,
+     * @param[in] data: a region to read/wirte data
+     * @param[in] len : data length
+     * @return SUCCESS if success
+     */
     bool read(char* data, size_t len);
     bool write(const char* data, size_t len);
 
-    bool read_async(size_t len);
+    /*
+     * async io, non block, when read or write comepleted, the callback function will be triggerd
+     * @param[in] data: a region to read/wirte data
+     * @param[in] len : data length
+     * @return SUCCESS if success
+     */
+    bool read_async(char* data, size_t len);
     bool write_async(const char* data, size_t len);
 
+    /*
+     * async io callback function, when post read/write async request and the request completed
+     * the registered callback function will be triggerd
+     * @param[in] cb: a region to read/wirte data
+     */
+    void registerExternelReadCompleteCb(ExternelReadCompleteCb cb);
+    void registerExternelWriteCompleteCb(ExternelWriteCompleteCb cb);
+
+protected:
     void storeKernelRB(const char* data, size_t len);
     void storeKernelWB(const char* data, size_t len);
 
@@ -58,6 +83,8 @@ private:
     SocketContextPtr mSockContext;
     BufferSPtr mReadBuffer;
     BufferSPtr mWriteBuffer;
+    ExternelReadCompleteCb mExternelReadCb;
+    ExternelWriteCompleteCb mExternelWriteCb;
 };
 typedef std::shared_ptr<ThreadsTcpBroServer> SocketBufferSPtr;
 typedef std::weak_ptr<ThreadsTcpBroServer> SocketBufferWPtr;

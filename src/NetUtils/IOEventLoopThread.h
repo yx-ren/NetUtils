@@ -7,6 +7,11 @@ NU_BEGIN
 #include <NetUtils/common.h>
 #include <NetUtils/base/SocketBuffer.h>
 
+/*
+    this class run as a thread
+    add io event and async callback when io event was completed
+*/
+
 class IOEventLoopThread
 {
 public:
@@ -20,6 +25,7 @@ public:
 
 protected:
     bool canProcessEvent(IOEvent event);
+
     bool preProcessEvent(IOEvent event);
     bool processEvent(IOEvent event);
     bool postProcessEvent(IOEvent event);
