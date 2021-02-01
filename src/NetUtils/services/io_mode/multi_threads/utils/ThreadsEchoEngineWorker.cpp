@@ -13,10 +13,10 @@ bool ThreadsEchoEngineWorker::doWork()
     CBT_DEBUG("ThreadsEchoEngineWorker", "doWork() worker was running");
 
     // TODO......
-    IPV4SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
+    IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        CBT_WARN("ThreadsEchoEngineWorker()", "doWork() context cast failed(SocketContextPtr -> IPV4SocketContextPtr)"
+        CBT_WARN("ThreadsEchoEngineWorker()", "doWork() context cast failed(SocketContextSPtr -> IPV4SocketContextSPtr)"
                 << ", skip this task");
         return;
     }

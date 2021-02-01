@@ -50,7 +50,7 @@ bool ThreadsTcp6BroServer::run()
         }
 #endif
 
-        IPV6SocketContextPtr sock_context(new IPV6SocketContext(client_socket, ntohs(cli_addr.sin6_port), cli_addr));
+        IPV6SocketContextSPtr sock_context(new IPV6SocketContext(client_socket, ntohs(cli_addr.sin6_port), cli_addr));
         char buf[0xff] = {0};
         sock_context->mClientAddrStr = inet_ntop(AF_INET6, &cli_addr.sin6_addr, buf, sizeof(buf));
         CBT_DEBUG("ThreadsTcp6BroServer", "run() new client arrived, accept the connection, "

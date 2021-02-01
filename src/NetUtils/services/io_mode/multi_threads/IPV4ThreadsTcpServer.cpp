@@ -17,10 +17,10 @@ void IPV4ThreadsClientHandle::doWork(void)
 
 void IPV4ThreadsClientHandle::handleReadEvent(void)
 {
-    IPV4SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
+    IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        std::cerr << "SocketContextPtr -> IPV4SocketContextPtr failed" << std::endl;
+        std::cerr << "SocketContextSPtr -> IPV4SocketContextSPtr failed" << std::endl;
         throw std::runtime_error("invalid cast");
     }
 
@@ -79,10 +79,10 @@ void IPV4ThreadsClientHandle::handleReadEvent(void)
 
 void IPV4ThreadsClientHandle::handleWriteEvent(void)
 {
-    IPV4SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
+    IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        std::cerr << "SocketContextPtr -> IPV4SocketContextPtr failed" << std::endl;
+        std::cerr << "SocketContextSPtr -> IPV4SocketContextSPtr failed" << std::endl;
         throw std::runtime_error("invalid cast");
     }
 
@@ -267,7 +267,7 @@ bool IPV4ThreadsTcpServer::run(void)
             return false;
         }
 
-        IPV4SocketContextPtr context(new IPV4SocketContext(cli_addr, client_socket));
+        IPV4SocketContextSPtr context(new IPV4SocketContext(cli_addr, client_socket));
         std::shared_ptr<std::thread> threadHandleClient(new std::thread(
             std::bind(&IPV4ThreadsTcpServer::handleClient, this, context)));
         threadHandleClient->detach();
@@ -276,7 +276,7 @@ bool IPV4ThreadsTcpServer::run(void)
     return true;
 }
 
-void IPV4ThreadsTcpServer::handleClient(SocketContextPtr context)
+void IPV4ThreadsTcpServer::handleClient(SocketContextSPtr context)
 {
     std::cout << "server: thread:[" << std::hex << std::this_thread::get_id() << "], "
         << "provide service" << std::endl;

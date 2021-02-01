@@ -10,7 +10,7 @@ NU_SER_BEGIN
 class IPV4ThreadsClientHandle : public ThreadsClientHandle
 {
 public:
-    explicit IPV4ThreadsClientHandle(IPV4SocketContextPtr context)
+    explicit IPV4ThreadsClientHandle(IPV4SocketContextSPtr context)
         : ThreadsClientHandle(context)
     {}
 
@@ -45,7 +45,7 @@ protected:
 
     virtual bool run(void) override;
 
-    virtual void handleClient(SocketContextPtr context);
+    virtual void handleClient(SocketContextSPtr context);
 };
 typedef std::shared_ptr<IPV4ThreadsTcpServer> IPV4ThreadsTcpServerPtr;
 

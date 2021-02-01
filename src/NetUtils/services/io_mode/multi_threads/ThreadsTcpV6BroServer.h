@@ -26,7 +26,7 @@ public:
 protected:
     virtual bool run(void) override;
 
-    //virtual void handleClient(SocketContextPtr context);
+    //virtual void handleClient(SocketContextSPtr context);
 
 protected:
     IProcessorSptr mClientProcessor;

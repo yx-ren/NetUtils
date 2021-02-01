@@ -137,7 +137,8 @@ public:
     std::mutex mMutex;
 };
 #endif
-typedef std::shared_ptr<SocketContext> SocketContextPtr;
+typedef std::shared_ptr<SocketContext> SocketContextSPtr;
+typedef std::shared_ptr<SocketContext> SocketContextWPtr;
 
 class IPV4SocketContext : public SocketContext
 {
@@ -152,7 +153,7 @@ public:
 
     struct sockaddr_in mClientAddr;
 };
-typedef std::shared_ptr<IPV4SocketContext> IPV4SocketContextPtr;
+typedef std::shared_ptr<IPV4SocketContext> IPV4SocketContextSPtr;
 
 class IPV6SocketContext : public SocketContext
 {
@@ -167,9 +168,9 @@ public:
 
     struct sockaddr_in6 mClientAddr;
 };
-typedef std::shared_ptr<IPV6SocketContext> IPV6SocketContextPtr;
+typedef std::shared_ptr<IPV6SocketContext> IPV6SocketContextSPtr;
 
-class SocketContextQueue : public std::queue<SocketContextPtr>
+class SocketContextQueue : public std::queue<SocketContextSPtr>
 {
 };
 typedef std::shared_ptr<SocketContextQueue> SocketContextQueuePtr;

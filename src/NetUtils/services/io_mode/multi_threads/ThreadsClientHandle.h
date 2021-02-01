@@ -32,7 +32,7 @@ NU_SER_BEGIN
 class ThreadsClientHandle
 {
 public:
-    explicit ThreadsClientHandle(SocketContextPtr context)
+    explicit ThreadsClientHandle(SocketContextSPtr context)
         : mContext(context)
     {}
 
@@ -51,7 +51,7 @@ protected:
 protected:
     std::mutex mMutex;
     std::condition_variable mCond;
-    SocketContextPtr mContext;
+    SocketContextSPtr mContext;
 
     std::queue<std::shared_ptr<std::string>> mMessageQueue;
 };

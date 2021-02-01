@@ -18,10 +18,10 @@ void IPV6ThreadsClientHandle::doWork(void)
 void IPV6ThreadsClientHandle::handleReadEvent(void)
 {
     char buf[0xff] = {0};
-    IPV6SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV6SocketContext>(mContext);
+    IPV6SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV6SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        std::cerr << "SocketContextPtr -> IPV6SocketContextPtr failed" << std::endl;
+        std::cerr << "SocketContextSPtr -> IPV6SocketContextSPtr failed" << std::endl;
         throw std::runtime_error("invalid cast");
     }
 
@@ -80,10 +80,10 @@ void IPV6ThreadsClientHandle::handleReadEvent(void)
 
 void IPV6ThreadsClientHandle::handleWriteEvent(void)
 {
-    IPV6SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV6SocketContext>(mContext);
+    IPV6SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV6SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        std::cerr << "SocketContextPtr -> IPV6SocketContextPtr failed" << std::endl;
+        std::cerr << "SocketContextSPtr -> IPV6SocketContextSPtr failed" << std::endl;
         throw std::runtime_error("invalid cast");
     }
 
@@ -258,7 +258,7 @@ bool IPV6ThreadsTcpServer::run(void)
             //<< ":[" << cli_addr.sin6_port << "] client" << std::endl;
             << ":[" << ntohs(cli_addr.sin6_port) << "] client" << std::endl;
 
-        IPV6SocketContextPtr context(new IPV6SocketContext(cli_addr, client_socket));
+        IPV6SocketContextSPtr context(new IPV6SocketContext(cli_addr, client_socket));
         std::shared_ptr<std::thread> threadHandleClient(new std::thread(
             std::bind(&IPV6ThreadsTcpServer::handleClient, this, context)));
         threadHandleClient->detach();
@@ -267,7 +267,7 @@ bool IPV6ThreadsTcpServer::run(void)
     return true;
 }
 
-void IPV6ThreadsTcpServer::handleClient(SocketContextPtr context)
+void IPV6ThreadsTcpServer::handleClient(SocketContextSPtr context)
 {
     std::cout << "server: thread:[" << std::hex << std::this_thread::get_id() << "], "
         << "provide service" << std::endl;

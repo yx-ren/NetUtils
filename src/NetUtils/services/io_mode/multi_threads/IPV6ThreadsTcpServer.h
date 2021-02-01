@@ -10,7 +10,7 @@ NU_SER_BEGIN
 class IPV6ThreadsClientHandle : public ThreadsClientHandle
 {
 public:
-    explicit IPV6ThreadsClientHandle(IPV6SocketContextPtr context)
+    explicit IPV6ThreadsClientHandle(IPV6SocketContextSPtr context)
         : ThreadsClientHandle(context)
     {}
 
@@ -45,7 +45,7 @@ protected:
 
     virtual bool run(void) override;
 
-    virtual void handleClient(SocketContextPtr context);
+    virtual void handleClient(SocketContextSPtr context);
 };
 typedef std::shared_ptr<IPV6ThreadsTcpServer> IPV6ThreadsTcpServerPtr;
 

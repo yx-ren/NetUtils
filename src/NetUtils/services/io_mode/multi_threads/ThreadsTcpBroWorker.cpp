@@ -59,10 +59,10 @@ void ThreadsTcpBroWorker::disbaleWriteEvent()
 
 void ThreadsTcpBroWorker::handleReadEvent()
 {
-    IPV4SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
+    IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        CBT_WARN("ThreadsTcpBroWorker()", "handleReadEvent() context cast failed(SocketContextPtr -> IPV4SocketContextPtr) "
+        CBT_WARN("ThreadsTcpBroWorker()", "handleReadEvent() context cast failed(SocketContextSPtr -> IPV4SocketContextSPtr) "
                 << "recv thread was quiting");
         return;
     }
@@ -144,10 +144,10 @@ void ThreadsTcpBroWorker::handleReadEvent()
 
 void ThreadsTcpBroWorker::handleWriteEvent()
 {
-    IPV4SocketContextPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
+    IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
     if (socket_context == NULL)
     {
-        CBT_WARN("ThreadsTcpBroWorker()", "handleWriteEvent() context cast failed(SocketContextPtr -> IPV4SocketContextPtr) "
+        CBT_WARN("ThreadsTcpBroWorker()", "handleWriteEvent() context cast failed(SocketContextSPtr -> IPV4SocketContextSPtr) "
                 << "send thread was quiting");
         return;
     }

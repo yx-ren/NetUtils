@@ -2,8 +2,33 @@
 
 NU_BEGIN
 
+bool IOEventLoopThread::start()
+{
+    mThread = std::make_shared<boost::thread>(std::bind(&IOEventLoopThread::run, this));
+
+    // sleep a while make sure that the IOEventLoopThread::run has been exec
+    // if not, the thread object(IOEventLoopThread) may be destrouct before the new thread(run()) run
+    // this may be cause an error
+    while(!isRunning())
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+    return true;
+
+}
+
+bool IOEventLoopThread::isRunning()
+{
+    std::mutex mMutex;
+    return mIsRunning;
+}
+
 bool IOEventLoopThread::run()
 {
+    {
+        std::unique_lock<std::mutex> lk(mMutex);
+        mIsRunning = true;
+    }
+
     while (true)
     {
         std::unique_lock<std::mutex> lk(mMutex);
@@ -46,10 +71,17 @@ bool IOEventLoopThread::run()
     return true;
 }
 
+bool IOEventLoopThread::process(SocketContextSPtr sock_ctx)
+{
+    std::unique_lock<std::mutex> lk(mMutex);
+    SocketContexts.push_back(sock_ctx);
+    return true;
+}
+
 bool IOEventLoopThread::onInternelReadNotify(SocketContextSPtr sock_ctx, const char* data, size_t len)
 {
     const auto sock_buffer = std::find_if(SocketContexts.begin(), SocketContexts.end(),
-            [](const SocketBufferSPtr buff) { buff->mSockContext == sock_ctx; });
+            [](const SocketBufferContextSPtr buff) { buff->mSockContext == sock_ctx; });
 
     if (sock_buffer == SocketContexts.end())
     {

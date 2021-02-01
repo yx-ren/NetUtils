@@ -50,14 +50,12 @@ bool ThreadsTcpBroServer::run()
         }
 #endif
 
-        IPV4SocketContextPtr sock_context(new IPV4SocketContext(client_socket, ntohs(cli_addr.sin_port), cli_addr));
+        IPV4SocketContextSPtr sock_context(new IPV4SocketContext(client_socket, ntohs(cli_addr.sin_port), cli_addr));
         sock_context->mClientAddrStr = inet_ntoa(sock_context->mClientAddr.sin_addr);
         CBT_DEBUG("ThreadsTcpBroServer", "run() new client arrived, accept the connection, "
                 "client info:" << sock_context->toString());
-        {
-            write_lock wlock(mRWLock);
-            mSocketContextQueue.push(sock_context);
-        }
+
+        SocketBufferContextSPtr sock_buffer(sock_context);
 
         if (!process(sock_context))
         {
