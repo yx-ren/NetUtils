@@ -22,7 +22,11 @@ public:
 
     bool start();
 
+    bool stop();
+
     bool isRunning();
+
+    void setOwner(std::weak_ptr<IOEventLoopThreadPool> owner);
 
     bool process(SocketContextSPtr sock_ctx);
 
@@ -31,6 +35,16 @@ public:
 
     // save the local buffer and try to consume writeEvents 
     bool onInternelWriteNotify(SocketContextSPtr sock_ctx, const char* data, size_t len);
+
+    size_t getSocketSize() const
+    {
+        return mSocketContexts.size();
+    }
+
+    size_t getEventSize() const
+    {
+        return mIOEvents.size();
+    }
 
 protected:
     bool run();
@@ -46,11 +60,12 @@ protected:
 
 protected:
     std::shared_ptr<boost::thread> mThread;
-    std::vector<SocketBufferContextSPtr> SocketContexts;
+    std::vector<SocketBufferContextSPtr> mSocketContexts;
     std::list<IOEvent> mIOEvents;
-    std::mutex mMutex;
+    std::mutex mMutex; // replace rwlock, TODO......
     std::condition_variable mIOEventsCond;
     bool mIsRunning;
+    std::weak_ptr<IOEventLoopThreadPool> mOwner;
 };
 typedef std::shared_ptr<IOEventLoopThread> IOEventLoopThreadSPtr
 typedef std::weak_ptr<IOEventLoopThread> IOEventLoopThreadWPtr

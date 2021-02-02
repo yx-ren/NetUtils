@@ -7,12 +7,13 @@ NU_BEGIN
 #include <NetUtils/common.h>
 #include <NetUtils/IOEventLoopThread.h>
 
-class IOEventLoopThreadPool
+class IOEventLoopThreadPool : public SingleObject
 {
 public:
-    IOEventLoopThreadPool(int maxThreadNum = 4)
-        : mMaxThreadNum(maxThreadNum)
-    {}
+    virtual ~IOEventLoopThreadPool() {}
+
+    void setMaxThreadNum(int num) { mMaxThreadNum = num; }
+    int getMaxThreadNum() const { return mMaxThreadNum; }
 
     bool start();
 
@@ -20,8 +21,14 @@ public:
 
     bool process(SocketContextSPtr sock_ctx);
 
+protected:
+    IOEventLoopThreadPool()
+        : mMaxThreadNum(4)
+    {}
+
 private:
     int mMaxThreadNum;
+    std::mutex mLock;
     std::vector<IOEventLoopThreadSPtr> mThreads;
 };
 

@@ -1,4 +1,5 @@
 #include <NetUtils/services/io_mode/multi_threads/ThreadsTcpBroServer.h>
+#include <NetUtils/IOEventLoopThreadPool.h>
 #include <common/base/logger/LoggerManager.h>
 
 using namespace CBASE_NAMESPACE;
@@ -56,6 +57,7 @@ bool ThreadsTcpBroServer::run()
                 "client info:" << sock_context->toString());
 
         SocketBufferContextSPtr sock_buffer(sock_context);
+        IOEventLoopThreadPool::getInstance()->process(sock_buffer);
 
         if (!process(sock_context))
         {

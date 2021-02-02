@@ -13,13 +13,25 @@ bool IOEventLoopThread::start()
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
     return true;
+}
 
+bool IOEventLoopThread::stop()
+{
+    mThread->interrupt();
+    mThread->join();
+
+    return true;
 }
 
 bool IOEventLoopThread::isRunning()
 {
-    std::mutex mMutex;
+    std::unique_lock<std::mutex> lk(mMutex);
     return mIsRunning;
+}
+
+void IOEventLoopThread::setOwner(std::weak_ptr<IOEventLoopThreadPool> owner)
+{
+    mOwner = owner;
 }
 
 bool IOEventLoopThread::run()
@@ -33,6 +45,7 @@ bool IOEventLoopThread::run()
     {
         std::unique_lock<std::mutex> lk(mMutex);
         mIOEventsCond.wait(lk, !mIOEvents.empty());
+        boost::interruption_point();
 
         // try to consume a event
         event = mIOEvents.front();
@@ -51,14 +64,19 @@ bool IOEventLoopThread::run()
             if (processed)
                 mIOEvents.pop();
 #else
+            preProcessEvent(event);
+
             if (processEvent(event))
             {
+                mExternelReadCompleteCb();
                 // log, TODO......
             }
             else
             {
                 // log, TODO......
             }
+
+            postProcessEvent(event);
 
             mIOEvents.pop();
 #endif
@@ -74,16 +92,16 @@ bool IOEventLoopThread::run()
 bool IOEventLoopThread::process(SocketContextSPtr sock_ctx)
 {
     std::unique_lock<std::mutex> lk(mMutex);
-    SocketContexts.push_back(sock_ctx);
+    mSocketContexts.push_back(sock_ctx);
     return true;
 }
 
 bool IOEventLoopThread::onInternelReadNotify(SocketContextSPtr sock_ctx, const char* data, size_t len)
 {
-    const auto sock_buffer = std::find_if(SocketContexts.begin(), SocketContexts.end(),
+    const auto sock_buffer = std::find_if(mSocketContexts.begin(), mSocketContexts.end(),
             [](const SocketBufferContextSPtr buff) { buff->mSockContext == sock_ctx; });
 
-    if (sock_buffer == SocketContexts.end())
+    if (sock_buffer == mSocketContexts.end())
     {
         CBT_WARN("IOEventLoopThread", "onInternelReadNotify() socket:" << sock_ctx->toString() << " not found in this event loop");
         return true;
@@ -95,7 +113,7 @@ bool IOEventLoopThread::onInternelReadNotify(SocketContextSPtr sock_ctx, const c
 
     // notify the read event and try to consume a readEvents or not
     // TODO......
-    mIOCond.notify()
+    mIOEventsCond.notify()
 }
 
 bool IOEventLoopThread::onInternelWriteNotify(SocketContextSPtr sock_ctx, const char* data, size_t len)
@@ -103,6 +121,7 @@ bool IOEventLoopThread::onInternelWriteNotify(SocketContextSPtr sock_ctx, const 
     // TODO......
 }
 
+// can process event: the socket buffer has enough data to consume a read/wirte event
 bool IOEventLoopThread::canProcessEvent(IOEvent event)
 {
     return true;
@@ -120,6 +139,11 @@ bool IOEventLoopThread::processWriteEvent(IOEvent event)
 
 bool IOEventLoopThread::preProcessEvent(IOEvent event)
 {
+    return true;
+}
+
+bool IOEventLoopThread::processEvent(IOEvent event)
+{
     bool process_successed = false;
     switch(event->type)
     {
@@ -131,12 +155,7 @@ bool IOEventLoopThread::preProcessEvent(IOEvent event)
             break;
     }
 
-    return true;
-}
-
-bool IOEventLoopThread::processEvent(IOEvent event)
-{
-    return true;
+    return process_successed;
 }
 
 bool IOEventLoopThread::postProcessEvent(IOEvent event)
