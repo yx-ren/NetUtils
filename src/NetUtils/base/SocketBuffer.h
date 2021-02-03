@@ -103,9 +103,16 @@ public:
      * internel io callback function, when read/write completed on raw socket
      * the registered callback function will be triggerd
      * @param[in] cb: a region to read/wirte data
+     * consider hide this for user
      */
+
     void registerInternelReadCompleteCb(InternelReadCompleteCb cb);
     void registerInternelWriteCompleteCb(InternelWriteCompleteCb cb);
+#endif
+
+#if 1
+    void onInternelReadCompleteCb(InternelReadCompleteCb cb);
+    void onInternelWriteCompleteCb(InternelWriteCompleteCb cb);
 #endif
 
 protected:

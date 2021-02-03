@@ -8,7 +8,6 @@
 #include <common/base/logger/LoggerManager.h>
 
 #include <NetUtils/IOHelper.h>
-#include <NetUtils/SocketContext.h>
 
 using namespace CBASE_LOGGER_NAMESPACE;
 using namespace CBASE_NAMESPACE;
@@ -22,8 +21,27 @@ bool ThreadsTcpBroWorker::doWork()
 {
     CBT_DEBUG("ThreadsTcpBroWorker", "doWork() worker was running");
 
-    mRecvThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleReadEvent, this));
-    mSendThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleWriteEvent, this));
+    SocketBufferContextSPtr sock_buffer_ctx = std::dynamic_pointer_cast<SocketBufferContext>(mContext);
+    if (sock_buffer_ctx = NULL)
+    {
+        CBT_WARN("ThreadsTcpBroWorker()", "doWork() context cast failed(IContext -> SocketBufferContext), "
+                << "bro worker will not do work");
+        return;
+    }
+
+    registerInternelReadCompleteCb(std::bind(&sock_buffer_ctx->onInternelReadCompleteCb, this));
+    registerInternelWriteCompleteCb(std::bind(&sock_buffer_ctx->onInternelWriteCompleteCb, this));
+
+    IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(sock_buffer_ctx->getSocketContext());
+    if (socket_context == NULL)
+    {
+        CBT_WARN("ThreadsTcpBroWorker()", "doWork() context cast failed(IContext -> IPV4SocketContext), "
+                << "bro worker will not do work");
+        return;
+    }
+
+    mRecvThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleReadEvent, this, socket_context));
+    mSendThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleWriteEvent, this, socket_context));
 
     mRecvThread.join();
     mSendThread.join();
@@ -57,16 +75,8 @@ void ThreadsTcpBroWorker::disbaleWriteEvent()
     mIsWriteEnabled = false;
 }
 
-void ThreadsTcpBroWorker::handleReadEvent()
+void ThreadsTcpBroWorker::handleReadEvent(IPV4SocketContextSPtr socket_context)
 {
-    IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
-    if (socket_context == NULL)
-    {
-        CBT_WARN("ThreadsTcpBroWorker()", "handleReadEvent() context cast failed(SocketContextSPtr -> IPV4SocketContextSPtr) "
-                << "recv thread was quiting");
-        return;
-    }
-
     CBT_DEBUG("ThreadsTcpBroWorker()", "handleReadEvent() start recv thread, client info:" << socket_context->toString());
     ON_SCOPE_EXIT([&]()
             {
@@ -134,24 +144,16 @@ void ThreadsTcpBroWorker::handleReadEvent()
                     << IOHelper::hexdump(reinterpret_cast<unsigned char*>(recv_buffer), rb));
         }
 
-        std::unique_lock<std::mutex> ctx_lk(socket_context->mRequestMutex);
-        std::copy(recv_buffer, recv_buffer + rb, std::back_inserter(socket_context->mRequest));
-        ctx_lk.unlock();
+        // notify internel complete
+        if (mInternelReadCb)
+            mInternelReadCb(recv_buffer, rb);
     }
 
     return;
 }
 
-void ThreadsTcpBroWorker::handleWriteEvent()
+void ThreadsTcpBroWorker::handleWriteEvent(IPV4SocketContextSPtr socket_context)
 {
-    IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(mContext);
-    if (socket_context == NULL)
-    {
-        CBT_WARN("ThreadsTcpBroWorker()", "handleWriteEvent() context cast failed(SocketContextSPtr -> IPV4SocketContextSPtr) "
-                << "send thread was quiting");
-        return;
-    }
-
     CBT_DEBUG("ThreadsTcpBroWorker()", "handleWriteEvent() start send thread, client info:" << socket_context->toString());
     ON_SCOPE_EXIT([&]()
             {

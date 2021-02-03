@@ -2,9 +2,8 @@
 #define __NET_UTILS_SERVICES_THREADS_TCP_BRO_WORKER_H__
 
 #include <mutex>
-#ifndef WIN32
 #include <condition_variable>
-#endif
+#include <NetUtils/base/SocketBufferContext.h>
 #include <NetUtils/services/IWorker.h>
 
 NU_SER_BEGIN
@@ -39,9 +38,14 @@ public:
     void disbaleReadEvent();
     void disbaleWriteEvent();
 
+#if 1
+    void registerInternelReadCompleteCb(InternelReadCompleteCb cb);
+    void registerInternelWriteCompleteCb(InternelWriteCompleteCb cb);
+#endif
+
 protected:
-    virtual void handleReadEvent();
-    virtual void handleWriteEvent();
+    virtual void handleReadEvent(IPV4SocketContextSPtr sock_ctx);
+    virtual void handleWriteEvent(IPV4SocketContextSPtr sock_ctx);
 
 private:
     bool mIsReadEnabled;
@@ -52,6 +56,10 @@ private:
     std::condition_variable mWriteCond;
     boost::thread mRecvThread;
     boost::thread mSendThread;
+#if 1
+    InternelReadCompleteCb mInternelReadCb;
+    InternelWriteCompleteCb mInternelWriteCb;
+#endif
 };
 typedef std::shared_ptr<ThreadsTcpBroWorker> ThreadsTcpBroWorkerSPtr;
 typedef std::weak_ptr<ThreadsTcpBroWorker> ThreadsTcpBroWorkerWPtr;
