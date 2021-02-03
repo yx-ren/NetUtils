@@ -6,12 +6,13 @@
 #include <NetUtils/services/common.h>
 #include <NetUtils/services/IEngine.h>
 #include <NetUtils/SocketContext.h>
+#include <NetUtils/SocketBufferContext.h>
 
 using NU_NAMESPACE::protocol;
 
 NU_SER_BEGIN
 
-typedef std::function<void(IOBufferSPtr)> handelNewClient;
+typedef std::function<void(SocketBufferContextSPtr)> handelNewClient;
 
 class ITcpBrokerServerEngine : public IEngine
 {

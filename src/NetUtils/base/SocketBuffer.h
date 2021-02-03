@@ -95,6 +95,8 @@ public:
     void registerExternelReadCompleteCb(ExternelReadCompleteCb cb);
     void registerExternelWriteCompleteCb(ExternelWriteCompleteCb cb);
 
+    const SocketContextSPtr getSocketContext() const;
+    SocketContextSPtr getSocketContext();
 
 #if 0
     /*

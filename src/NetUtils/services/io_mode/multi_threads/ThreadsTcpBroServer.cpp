@@ -51,29 +51,26 @@ bool ThreadsTcpBroServer::run()
         }
 #endif
 
+        // alloc socket context
         IPV4SocketContextSPtr sock_context(new IPV4SocketContext(client_socket, ntohs(cli_addr.sin_port), cli_addr));
         sock_context->mClientAddrStr = inet_ntoa(sock_context->mClientAddr.sin_addr);
         CBT_DEBUG("ThreadsTcpBroServer", "run() new client arrived, accept the connection, "
                 "client info:" << sock_context->toString());
 
+        // alloc socket buffer context and push the socket into eventloop, this process user read/write request
         SocketBufferContextSPtr sock_buffer(sock_context);
         IOEventLoopThreadPool::getInstance()->process(sock_buffer);
 
-        if (!process(sock_context))
+        // bro processor, this process read/write on this socket
+        if (!process(sock_buffer))
         {
             CBT_WARN("ThreadsTcpBroServer", "run() failed to process client io, "
-                    "client info:" << sock_context->toString());
+                    "client info:" << sock_buffer()->getSocketContext()->toString());
         }
 
+        // notify the user the new client arrived and register async callback if necessary
         if (mHandleNewClientCb)
-            mHandleNewClientCb(sock_context);
-
-        if (mNextEngine)
-        {
-            CBT_DEBUG("ThreadsTcpBroServer", "run() next engine was enabled, transaction will continue processed"
-                    ", next engine info:" << mNextEngine->toString());
-            mNextEngine->process(sock_context);
-        }
+            mHandleNewClientCb(sock_buffer);
     }
 
     return true;
