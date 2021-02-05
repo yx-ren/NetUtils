@@ -30,11 +30,17 @@ public:
 
     bool process(SocketContextSPtr sock_ctx);
 
+#if 0
     // save the local buffer and try to consume readEvents
     bool onInternelReadNotify(SocketContextSPtr sock_ctx, const char* data, size_t len);
 
     // save the local buffer and try to consume writeEvents 
     bool onInternelWriteNotify(SocketContextSPtr sock_ctx, const char* data, size_t len);
+#endif
+
+    bool addIOEvent(IOEventSPtr event);
+
+    //bool removeIOEvent(IOEventSPtr event);
 
     size_t getSocketSize() const
     {

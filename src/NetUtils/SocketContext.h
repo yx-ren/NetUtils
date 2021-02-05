@@ -117,7 +117,10 @@ public:
     virtual ~SocketContext()
     {
         if (mClientFd != INVALID_FD)
+        {
             close(mClientFd);
+            mClientFd = INVALID_FD;
+        }
     }
 
     std::string toString() const override

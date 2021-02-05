@@ -48,27 +48,13 @@ bool IOEventLoopThread::run()
         boost::interruption_point();
 
         // try to consume a event
-        event = mIOEvents.front();
+        event = mIOEvents.front(); // this may be one can't consumed event block the whole event loop, try to fix it
         if (canProcessEvent(event))
         {
-#if 0
-            processEvent(event);
-            |
-                // readBuffer reset pos
-                // TODO......
-
-                // notify caller by async read
-                // TODO......
-                mExternelReadCompleteCb();
-
-            if (processed)
-                mIOEvents.pop();
-#else
             preProcessEvent(event);
 
             if (processEvent(event))
             {
-                mExternelReadCompleteCb();
                 // log, TODO......
             }
             else
@@ -79,7 +65,6 @@ bool IOEventLoopThread::run()
             postProcessEvent(event);
 
             mIOEvents.pop();
-#endif
         }
         else
         {
@@ -96,6 +81,7 @@ bool IOEventLoopThread::process(SocketContextSPtr sock_ctx)
     return true;
 }
 
+#if 0
 bool IOEventLoopThread::onInternelReadNotify(SocketContextSPtr sock_ctx, const char* data, size_t len)
 {
     const auto sock_buffer = std::find_if(mSocketContexts.begin(), mSocketContexts.end(),
@@ -120,19 +106,10 @@ bool IOEventLoopThread::onInternelWriteNotify(SocketContextSPtr sock_ctx, const 
 {
     // TODO......
 }
+#endif
 
 // can process event: the socket buffer has enough data to consume a read/wirte event
 bool IOEventLoopThread::canProcessEvent(IOEvent event)
-{
-    return true;
-}
-
-bool IOEventLoopThread::processReadEvent(IOEvent event)
-{
-    return true;
-}
-
-bool IOEventLoopThread::processWriteEvent(IOEvent event)
 {
     return true;
 }
@@ -163,13 +140,15 @@ bool IOEventLoopThread::postProcessEvent(IOEvent event)
     return true;
 }
 
-bool IOEventLoopThread::processReadEvent()
+bool IOEventLoopThread::processReadEvent(IOEvent event)
 {
+    //mExternelReadCompleteCb();
     return true;
 }
 
-bool IOEventLoopThread::processWriteEvent()
+bool IOEventLoopThread::processWriteEvent(IOEvent event)
 {
+    //mExternelWriteCompleteCb();
     return true;
 }
 

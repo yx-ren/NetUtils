@@ -8,6 +8,9 @@
 #include <NetUtils/base/Buffer.h>
 
 NU_BASE_BEGIN
+
+#define SOCKET_BUFFER_ENABLE_INTERNEL           0
+
 class IO_EVENT
 {
 public:
@@ -19,13 +22,20 @@ public:
         ET_ASYNC_WRITE,
     };
 
-    std::shared_ptr<std::string> data;
+    SocketContextSPtr mSocketContext;
+    EVENT_TYPE mType;
+    std::shared_ptr<std::string> mData;
+    size_t mLen;
 };
+typedef std::shared_ptr<IO_EVENT> IO_EVENTSPtr;
+typedef std::weak_ptr<IO_EVENT> IO_EVENTWPtr;
 
 enum IO_EVENT_RESULT
 {
     IER_SUCCESSED,
     IER_FAILED,
+    IER_CLOSED_BY_PEER,
+    IER_RST_BY_PEER,
 };
 
 #ifdef __BUFF_OBJECT__
@@ -61,7 +71,7 @@ public:
         : mSockContext(context)
         , mReadBuffer(nullptr)
         , mWriteBuffer(nullptr)
-#if 0
+#if SOCKET_BUFFER_ENABLE_INTERNEL
         , mInternelReadCb(nullptr)
         , mInternelWriteCb(nullptr)
 #endif
@@ -79,7 +89,8 @@ public:
     bool write(const char* data, size_t len);
 
     /*
-     * async io, non block, when read or write comepleted, the callback function will be triggerd
+     * async io, non block, generate a request(ioevent)
+     * when read or write comepleted, the callback function will be triggerd
      * @param[in] data: a region to read/wirte data
      * @param[in] len : data length
      * @return SUCCESS if success
@@ -98,7 +109,7 @@ public:
     const SocketContextSPtr getSocketContext() const;
     SocketContextSPtr getSocketContext();
 
-#if 0
+#if SOCKET_BUFFER_ENABLE_INTERNEL
     /*
      * internel io callback function, when read/write completed on raw socket
      * the registered callback function will be triggerd
@@ -110,28 +121,34 @@ public:
     void registerInternelWriteCompleteCb(InternelWriteCompleteCb cb);
 #endif
 
-#if 1
+    /*
+     * internel io callback function, when read/write completed on raw socket
+     * the registered callback function will be triggerd
+     * @param[in] cb: a region to read/wirte data
+     * consider hide this for user
+     */
     void onInternelReadCompleteCb(InternelReadCompleteCb cb);
     void onInternelWriteCompleteCb(InternelWriteCompleteCb cb);
-#endif
 
 protected:
     void storeKernelRB(const char* data, size_t len);
     void storeKernelWB(const char* data, size_t len);
 
+    IOEventSPtr generateIOEvent(IO_EVENT::EVENT_TYPE type, char* data, size_t len);
+
 private:
     SocketContextSPtr mSockContext;
     BufferSPtr mReadBuffer;
     BufferSPtr mWriteBuffer;
-#if 0
+#if SOCKET_BUFFER_ENABLE_INTERNEL
     InternelReadCompleteCb mInternelReadCb;
     InternelWriteCompleteCb mInternelWriteCb;
 #endif
     ExternelReadCompleteCb mExternelReadCb;
     ExternelWriteCompleteCb mExternelWriteCb;
 };
-typedef std::shared_ptr<ThreadsTcpBroServer> SocketBufferContextSPtr;
-typedef std::weak_ptr<ThreadsTcpBroServer> SocketBufferContextWPtr;
+typedef std::shared_ptr<SocketBufferContext> SocketBufferContextSPtr;
+typedef std::weak_ptr<SocketBufferContext> SocketBufferContextWPtr;
 
 class SocketBufferContextReader;
 class SocketBufferContextWriter;

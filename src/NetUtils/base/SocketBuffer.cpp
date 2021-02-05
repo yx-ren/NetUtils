@@ -17,12 +17,14 @@ bool SocketBufferContext::write(const char* data, size_t len)
 bool SocketBufferContext::read_async(char* data, size_t len)
 {
     // TODO......
+    getOwner()->addIOEvent(generateIOEvent());
     return true;
 }
 
 bool SocketBufferContext::write_async(const char* data, size_t len)
 {
     // TODO......
+    getOwner()->addIOEvent(generateIOEvent());
     return true;
 }
 

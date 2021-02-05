@@ -27,10 +27,8 @@ public:
 
     virtual bool doWork() override;
 
-#if 0
-    bool isReadEventEnabled();
-    bool isWriteEventEnabled();
-#endif
+    bool isReadEventEnabled() const;
+    bool isWriteEventEnabled() const;
 
     void enableReadEvent();
     void enableWriteEvent();
@@ -38,10 +36,8 @@ public:
     void disbaleReadEvent();
     void disbaleWriteEvent();
 
-#if 1
     void registerInternelReadCompleteCb(InternelReadCompleteCb cb);
     void registerInternelWriteCompleteCb(InternelWriteCompleteCb cb);
-#endif
 
 protected:
     virtual void handleReadEvent(IPV4SocketContextSPtr sock_ctx);
@@ -50,16 +46,15 @@ protected:
 private:
     bool mIsReadEnabled;
     bool mIsWriteEnabled;
+    std::mutex mMutex;
     std::mutex mReadMutex;
     std::condition_variable mReadCond;
     std::mutex mWriteMutex;
     std::condition_variable mWriteCond;
     boost::thread mRecvThread;
     boost::thread mSendThread;
-#if 1
     InternelReadCompleteCb mInternelReadCb;
     InternelWriteCompleteCb mInternelWriteCb;
-#endif
 };
 typedef std::shared_ptr<ThreadsTcpBroWorker> ThreadsTcpBroWorkerSPtr;
 typedef std::weak_ptr<ThreadsTcpBroWorker> ThreadsTcpBroWorkerWPtr;

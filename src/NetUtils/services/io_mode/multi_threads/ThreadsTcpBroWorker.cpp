@@ -51,6 +51,18 @@ bool ThreadsTcpBroWorker::doWork()
     return true;
 }
 
+bool ThreadsTcpBroWorker::isReadEventEnabled() const
+{
+    std::unique_lock<std::mutex> lk(mReadMutex);
+    return mIsReadEnabled;
+}
+
+bool ThreadsTcpBroWorker::isWriteEventEnabled() const
+{
+    std::unique_lock<std::mutex> lk(mWriteMutex);
+    return mIsWriteEnabled;
+}
+
 void ThreadsTcpBroWorker::enableReadEvent()
 {
     std::unique_lock<std::mutex> lk(mReadMutex);
@@ -75,22 +87,31 @@ void ThreadsTcpBroWorker::disbaleWriteEvent()
     mIsWriteEnabled = false;
 }
 
+void ThreadsTcpBroWorker::registerInternelReadCompleteCb(InternelReadCompleteCb cb)
+{
+    std::unique_lock<std::mutex> lk(mMutex);
+    mInternelReadCb = cb;
+}
+
+void ThreadsTcpBroWorker::registerInternelWriteCompleteCb(InternelWriteCompleteCb cb)
+{
+    std::unique_lock<std::mutex> lk(mMutex);
+    mExternelReadCb = cb;
+}
+
 void ThreadsTcpBroWorker::handleReadEvent(IPV4SocketContextSPtr socket_context)
 {
     CBT_DEBUG("ThreadsTcpBroWorker()", "handleReadEvent() start recv thread, client info:" << socket_context->toString());
     ON_SCOPE_EXIT([&]()
             {
-                if (socket_context)
-                {
-                    std::unique_lock<std::mutex> ctx_lk(socket_context->mMutex);
-                    close(socket_context->mClientFd);
-                    socket_context->mClientFd = INVALID_FD;
-                }
                 CBT_DEBUG("ThreadsTcpBroWorker()", "handleReadEvent() recv thread was quiting, "
+                    << "and notify the send thread to quit, "
                     << "client info:" << socket_context->toString());
                 enableWriteEvent();
                 mSendThread.interrupt();
                 mWriteCond.notify_one();
+                if (mInternelReadCb)
+                    mInternelReadCb(IER_FAILED, NULL, 0);
             });
 
     while (true)
@@ -105,33 +126,41 @@ void ThreadsTcpBroWorker::handleReadEvent(IPV4SocketContextSPtr socket_context)
             return;
         }
 
-        std::unique_lock<std::mutex> lk(mReadMutex);
-        while (!mIsReadEnabled)
-            mReadCond.wait(lk);
-        lk.unlock();
+        {
+            std::unique_lock<std::mutex> lk(mReadMutex);
+            while (!mIsReadEnabled)
+                mReadCond.wait(lk);
+        }
 
         char recv_buffer[MAX_MESSAGEBUFF_LEN] = {0};
-        int rb = recv(socket_context->mClientFd, recv_buffer, MAX_MESSAGEBUFF_LEN, 0);
-        if (rb < 0)
+        int rb = 0;
+        while (true) // monitor the read event
         {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            rb = recv(socket_context->mClientFd, recv_buffer, MAX_MESSAGEBUFF_LEN, 0);
+            if (rb < 0)
             {
-                CBT_DEBUG("ThreadsTcpBroWorker", "handleReadEvent() EAGAIN or EWOULDBLOCK returned, try recv() again, "
-                        << "client info:" << socket_context->toString());
-                continue;
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+                {
+                    CBT_TRACE("ThreadsTcpBroWorker", "handleReadEvent() EAGAIN or EWOULDBLOCK returned, try recv() again, "
+                            << "client info:" << socket_context->toString());
+                    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                    continue;
+                }
+                else
+                {
+                    CBT_DEBUG("ThreadsTcpBroWorker", "handleReadEvent() recv data failed, errno code:" << errno << ", "
+                            << "client info:" << socket_context->toString());
+                    return;
+                }
             }
-            else
+            else if (rb == 0)
             {
-                CBT_DEBUG("ThreadsTcpBroWorker", "handleReadEvent() recv data failed, errno code:" << errno << ", "
+                CBT_DEBUG("ThreadsTcpBroWorker", "handleReadEvent() connection was closed by peer, "
                         << "client info:" << socket_context->toString());
-                break;
+                return;
             }
-        }
-        else if (rb == 0)
-        {
-            CBT_DEBUG("ThreadsTcpBroWorker", "handleReadEvent() connection was closed by peer, "
-                    << "client info:" << socket_context->toString());
-            break;
+            else // if (rb > 0)
+                break
         }
 
         CBT_INFO("ThreadsTcpBroWorker", "handleReadEvent() recv " << rb << " bytes from client:" << socket_context->toString());
@@ -146,7 +175,7 @@ void ThreadsTcpBroWorker::handleReadEvent(IPV4SocketContextSPtr socket_context)
 
         // notify internel complete
         if (mInternelReadCb)
-            mInternelReadCb(recv_buffer, rb);
+            mInternelReadCb(IER_SUCCESSED, recv_buffer, rb);
     }
 
     return;
@@ -157,15 +186,10 @@ void ThreadsTcpBroWorker::handleWriteEvent(IPV4SocketContextSPtr socket_context)
     CBT_DEBUG("ThreadsTcpBroWorker()", "handleWriteEvent() start send thread, client info:" << socket_context->toString());
     ON_SCOPE_EXIT([&]()
             {
-                if (socket_context)
-                {
-                    std::unique_lock<std::mutex> ctx_lk(socket_context->mMutex);
-                    close(socket_context->mClientFd);
-                    socket_context->mClientFd = INVALID_FD;
-                }
-                enableReadEvent();
                 CBT_DEBUG("ThreadsTcpBroWorker()", "handleWriteEvent() send thread was quiting, "
+                    << "and notify the recv thread to quit, "
                     << "client info:" << socket_context->toString());
+                enableReadEvent();
                 mRecvThread.interrupt();
                 mReadCond.notify_one();
             });
