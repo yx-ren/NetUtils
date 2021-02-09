@@ -24,18 +24,9 @@ NU_BEGIN
 
 #define INVALID_FD              -1
 
-enum ASYNC_IO_RESULT
-{
-    AIR_READ_SUCCESSED,
-    AIR_WRITE_SUCCESSED,
-    AIR_READ_FAILED,
-    AIR_WRITE_FAILED,
-    AIR_PEER_CLOSED,
-};
-
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> ExternelIOCompleteCb;
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> ExternelReadCompleteCb;
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> ExternelWriteCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, const char* data, size_t size)> ExternelIOCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, const char* data, size_t size)> ExternelReadCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, const char* data, size_t size)> ExternelWriteCompleteCb;
 
 #if 0
 class SocketContext : public IContext

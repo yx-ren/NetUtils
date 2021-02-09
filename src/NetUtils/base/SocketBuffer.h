@@ -9,9 +9,7 @@
 
 NU_BASE_BEGIN
 
-#define SOCKET_BUFFER_ENABLE_INTERNEL           0
-
-class IO_EVENT
+class IOEvent
 {
 public:
     enum EVENT_TYPE
@@ -22,13 +20,27 @@ public:
         ET_ASYNC_WRITE,
     };
 
-    SocketContextSPtr mSocketContext;
+    IOEvent(SocketBufferContextSPtr ctx)
+        : mSockBufCtx(ctx)
+        , mIsConsumed(false)
+    {}
+
+    bool process()
+    {
+        ON_SCOPE_EXIT([]() {mIsConsumed = true;} );
+        // TODO......
+
+        return true;
+    }
+
+    SocketBufferContextSWtr mSockBufCtx;
+    bool mIsConsumed;
     EVENT_TYPE mType;
     std::shared_ptr<std::string> mData;
     size_t mLen;
 };
-typedef std::shared_ptr<IO_EVENT> IO_EVENTSPtr;
-typedef std::weak_ptr<IO_EVENT> IO_EVENTWPtr;
+typedef std::shared_ptr<IO_EVENT> IOEventSPtr;
+typedef std::weak_ptr<IO_EVENT> IOEventWPtr;
 
 enum IO_EVENT_RESULT
 {
@@ -36,24 +48,26 @@ enum IO_EVENT_RESULT
     IER_FAILED,
     IER_CLOSED_BY_PEER,
     IER_RST_BY_PEER,
+    IER_NOT_ENOUGH_READ_DATA,
+    IER_NOT_ENOUGH_WRITE_SPACE,
 };
 
 #ifdef __BUFF_OBJECT__
-typedef std::function<void(IO_EVENT_RESULT, BufferSPtr buffer, size_t pos, size_t len)> ExternelIOCompleteCb;
-typedef std::function<void(IO_EVENT_RESULT, BufferSPtr buffer, size_t pos, size_t len)> ExternelReadCompleteCb;
-typedef std::function<void(IO_EVENT_RESULT, BufferSPtr buffer, size_t pos, size_t len)> ExternelWriteCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT, SocketBufferContextSPtr sbc, BufferSPtr buffer, size_t pos, size_t len)> ExternelIOCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT, SocketBufferContextSPtr sbc, BufferSPtr buffer, size_t pos, size_t len)> ExternelReadCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT, SocketBufferContextSPtr sbc, BufferSPtr buffer, size_t pos, size_t len)> ExternelWriteCompleteCb;
 
-typedef std::function<void(IO_EVENT_RESULT, BufferSPtr buffer, size_t pos, size_t len)> InternelIOCompleteCb;
-typedef std::function<void(IO_EVENT_RESULT, BufferSPtr buffer, size_t pos, size_t len)> InternelReadCompleteCb;
-typedef std::function<void(IO_EVENT_RESULT, BufferSPtr buffer, size_t pos, size_t len)> InternelWriteCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT, SocketBufferContextSPtr sbc, BufferSPtr buffer, size_t pos, size_t len)> InternelIOCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT, SocketBufferContextSPtr sbc, BufferSPtr buffer, size_t pos, size_t len)> InternelReadCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT, SocketBufferContextSPtr sbc, BufferSPtr buffer, size_t pos, size_t len)> InternelWriteCompleteCb;
 #else
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> ExternelIOCompleteCb;
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> ExternelReadCompleteCb;
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> ExternelWriteCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, SocketBufferContextSPtr sbc, const char* data, size_t size)> ExternelIOCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, SocketBufferContextSPtr sbc, const char* data, size_t size)> ExternelReadCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, SocketBufferContextSPtr sbc, const char* data, size_t size)> ExternelWriteCompleteCb;
 
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> InternelIOCompleteCb;
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> InternelReadCompleteCb;
-typedef std::function<void(ASYNC_IO_RESULT result, const char* data, size_t size)> InternelWriteCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, SocketBufferContextSPtr sbc, const char* data, size_t size)> InternelIOCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, SocketBufferContextSPtr sbc, const char* data, size_t size)> InternelReadCompleteCb;
+typedef std::function<void(IO_EVENT_RESULT result, SocketBufferContextSPtr sbc, const char* data, size_t size)> InternelWriteCompleteCb;
 #endif
 
 class SocketBufferContext : public IContext
@@ -65,18 +79,22 @@ public:
         , mWriteBuffer(nullptr)
         , mExternelReadCb(nullptr)
         , mExternelWriteCb(nullptr)
+        , mStoreReadBytes(0)
+        , mStoreWriteBytes(0)
+        , mEventReadBytes(0)
+        , mEventWriteBytes(0)
     {}
 
     SocketBufferContext(SocketContextSPtr context)
         : mSockContext(context)
         , mReadBuffer(nullptr)
         , mWriteBuffer(nullptr)
-#if SOCKET_BUFFER_ENABLE_INTERNEL
-        , mInternelReadCb(nullptr)
-        , mInternelWriteCb(nullptr)
-#endif
         , mExternelReadCb(nullptr)
         , mExternelWriteCb(nullptr)
+        , mStoreReadBytes(0)
+        , mStoreWriteBytes(0)
+        , mEventReadBytes(0)
+        , mEventWriteBytes(0)
     {}
 
     /*
@@ -106,33 +124,34 @@ public:
     void registerExternelReadCompleteCb(ExternelReadCompleteCb cb);
     void registerExternelWriteCompleteCb(ExternelWriteCompleteCb cb);
 
+    void setOwner(IOEventLoopThreadWPtr owner);
+
+    IOEventLoopThreadWPtr getOwner();
+    const IOEventLoopThreadWPtr getOwner() const;
+
     const SocketContextSPtr getSocketContext() const;
     SocketContextSPtr getSocketContext();
 
-#if SOCKET_BUFFER_ENABLE_INTERNEL
-    /*
-     * internel io callback function, when read/write completed on raw socket
-     * the registered callback function will be triggerd
-     * @param[in] cb: a region to read/wirte data
-     * consider hide this for user
-     */
+    void storeKernelRB(const char* data, size_t len); // consider max store data configured by config, TODO......
+    void storeKernelWB(const char* data, size_t len);
 
-    void registerInternelReadCompleteCb(InternelReadCompleteCb cb);
-    void registerInternelWriteCompleteCb(InternelWriteCompleteCb cb);
-#endif
+    std::vector<IOEventSPtr> getReadyIOEvents();
 
-    /*
-     * internel io callback function, when read/write completed on raw socket
-     * the registered callback function will be triggerd
-     * @param[in] cb: a region to read/wirte data
-     * consider hide this for user
-     */
-    void onInternelReadCompleteCb(InternelReadCompleteCb cb);
-    void onInternelWriteCompleteCb(InternelWriteCompleteCb cb);
+    bool hasReadyEvent();
+    bool hasReadyReadEvent();
+    bool hasReadyWriteEvent();
+
+    bool processEvent();
 
 protected:
-    void storeKernelRB(const char* data, size_t len);
-    void storeKernelWB(const char* data, size_t len);
+
+    bool canProcessEvent(IOEvent event);
+
+    bool preProcessEvent(IOEvent event);
+    bool postProcessEvent(IOEvent event);
+
+    bool processReadEvent(IOEvent event);
+    bool processWriteEvent(IOEvent event);
 
     IOEventSPtr generateIOEvent(IO_EVENT::EVENT_TYPE type, char* data, size_t len);
 
@@ -140,12 +159,16 @@ private:
     SocketContextSPtr mSockContext;
     BufferSPtr mReadBuffer;
     BufferSPtr mWriteBuffer;
-#if SOCKET_BUFFER_ENABLE_INTERNEL
-    InternelReadCompleteCb mInternelReadCb;
-    InternelWriteCompleteCb mInternelWriteCb;
-#endif
+    std::queue<IOEventSPtr> mReadEvents;
+    std::queue<IOEventSPtr> mWriteEvents;
     ExternelReadCompleteCb mExternelReadCb;
     ExternelWriteCompleteCb mExternelWriteCb;
+
+    size_t mStoreReadBytes;
+    size_t mStoreWriteBytes;
+
+    size_t mEventReadBytes;
+    size_t mEventWriteBytes;
 };
 typedef std::shared_ptr<SocketBufferContext> SocketBufferContextSPtr;
 typedef std::weak_ptr<SocketBufferContext> SocketBufferContextWPtr;

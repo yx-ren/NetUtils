@@ -24,13 +24,31 @@ bool ThreadsTcpBroWorker::doWork()
     SocketBufferContextSPtr sock_buffer_ctx = std::dynamic_pointer_cast<SocketBufferContext>(mContext);
     if (sock_buffer_ctx = NULL)
     {
-        CBT_WARN("ThreadsTcpBroWorker()", "doWork() context cast failed(IContext -> SocketBufferContext), "
-                << "bro worker will not do work");
+        CBT_ERROR("ThreadsTcpBroWorker()", "doWork() context cast failed(IContext -> SocketBufferContext), "
+                << "bro worker not work");
         return;
     }
 
-    registerInternelReadCompleteCb(std::bind(&sock_buffer_ctx->onInternelReadCompleteCb, this));
-    registerInternelWriteCompleteCb(std::bind(&sock_buffer_ctx->onInternelWriteCompleteCb, this));
+    IOEventLoopThreadSPtr event_thread = sock_buffer_ctx->getOwner().lock();
+    if (!event_thread)
+    {
+        CBT_ERROR("ThreadsTcpBroWorker()", "doWork() the socket buffer has not been bind to a event loop, "
+                << "bro worker not work");
+        return;
+    }
+
+    registerInternelReadCompleteCb(std::bind(&event_thread->onInternelReadNotify,
+           , event_thread.get())
+           , _1 
+           , _2 
+           , _3 
+           );
+    registerInternelWriteCompleteCb(std::bind(&event_thread->onInternelWriteNotify,
+           , event_thread.get()
+           , _1 
+           , _2 
+           , _3 
+           ));
 
     IPV4SocketContextSPtr socket_context = std::dynamic_pointer_cast<IPV4SocketContext>(sock_buffer_ctx->getSocketContext());
     if (socket_context == NULL)
@@ -40,8 +58,8 @@ bool ThreadsTcpBroWorker::doWork()
         return;
     }
 
-    mRecvThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleReadEvent, this, socket_context));
-    mSendThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleWriteEvent, this, socket_context));
+    mRecvThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleReadEvent, this, sock_buffer_ctx, socket_context));
+    mSendThread = boost::thread(boost::bind(&ThreadsTcpBroWorker::handleWriteEvent, this, sock_buffer_ctx, socket_context));
 
     mRecvThread.join();
     mSendThread.join();
@@ -99,7 +117,7 @@ void ThreadsTcpBroWorker::registerInternelWriteCompleteCb(InternelWriteCompleteC
     mExternelReadCb = cb;
 }
 
-void ThreadsTcpBroWorker::handleReadEvent(IPV4SocketContextSPtr socket_context)
+void ThreadsTcpBroWorker::handleReadEvent(SocketBufferContextSPtr sock_buf_ctx, IPV4SocketContextSPtr socket_context)
 {
     CBT_DEBUG("ThreadsTcpBroWorker()", "handleReadEvent() start recv thread, client info:" << socket_context->toString());
     ON_SCOPE_EXIT([&]()
@@ -111,7 +129,7 @@ void ThreadsTcpBroWorker::handleReadEvent(IPV4SocketContextSPtr socket_context)
                 mSendThread.interrupt();
                 mWriteCond.notify_one();
                 if (mInternelReadCb)
-                    mInternelReadCb(IER_FAILED, NULL, 0);
+                    mInternelReadCb(IER_CLOSED_BY_PEER, NULL, NULL, 0);
             });
 
     while (true)
@@ -175,13 +193,13 @@ void ThreadsTcpBroWorker::handleReadEvent(IPV4SocketContextSPtr socket_context)
 
         // notify internel complete
         if (mInternelReadCb)
-            mInternelReadCb(IER_SUCCESSED, recv_buffer, rb);
+            mInternelReadCb(IER_SUCCESSED, sock_buf_ctx, recv_buffer, rb);
     }
 
     return;
 }
 
-void ThreadsTcpBroWorker::handleWriteEvent(IPV4SocketContextSPtr socket_context)
+void ThreadsTcpBroWorker::handleWriteEvent(SocketBufferContextSPtr sock_buf_ctx, IPV4SocketContextSPtr socket_context)
 {
     CBT_DEBUG("ThreadsTcpBroWorker()", "handleWriteEvent() start send thread, client info:" << socket_context->toString());
     ON_SCOPE_EXIT([&]()

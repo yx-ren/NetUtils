@@ -4,6 +4,12 @@ NU_BEGIN
 
 bool IOEventLoopThread::start()
 {
+    if (isRunning())
+    {
+        CBT_INFO("IOEventLoopThread", "start() thread:0x" << mThread.get_id() << " has been started");
+        return true;
+    }
+
     mThread = std::make_shared<boost::thread>(std::bind(&IOEventLoopThread::run, this));
 
     // sleep a while make sure that the IOEventLoopThread::run has been exec
@@ -17,8 +23,15 @@ bool IOEventLoopThread::start()
 
 bool IOEventLoopThread::stop()
 {
+    if (!isRunning())
+    {
+        CBT_INFO("IOEventLoopThread", "start() thread has not been started");
+        return true;
+    }
+
     mThread->interrupt();
     mThread->join();
+    mIsRunning = false;
 
     return true;
 }
@@ -34,6 +47,11 @@ void IOEventLoopThread::setOwner(std::weak_ptr<IOEventLoopThreadPool> owner)
     mOwner = owner;
 }
 
+std::weak_ptr<IOEventLoopThreadPool> IOEventLoopThread::getOwner()
+{
+    return mOwner;
+}
+
 bool IOEventLoopThread::run()
 {
     {
@@ -43,113 +61,61 @@ bool IOEventLoopThread::run()
 
     while (true)
     {
-        std::unique_lock<std::mutex> lk(mMutex);
-        mIOEventsCond.wait(lk, !mIOEvents.empty());
+        boost::interruption_point();
+        SocketBufferContextSPtr ready_ctx;
+        {
+            std::unique_lock<std::mutex> lk(mMutex);
+            mReadyEventsCond.wait(lk, !mReadySockBufCtxs.empty());
+            ready_ctx = mReadySockBufCtxs.front();
+            mReadySockBufCtxs.pop();
+        }
         boost::interruption_point();
 
-        // try to consume a event
-        event = mIOEvents.front(); // this may be one can't consumed event block the whole event loop, try to fix it
-        if (canProcessEvent(event))
-        {
-            preProcessEvent(event);
-
-            if (processEvent(event))
-            {
-                // log, TODO......
-            }
-            else
-            {
-                // log, TODO......
-            }
-
-            postProcessEvent(event);
-
-            mIOEvents.pop();
-        }
-        else
-        {
-            continue;
-        }
+        ready_ctx->processEvent();
     }
+
     return true;
 }
 
-bool IOEventLoopThread::process(SocketContextSPtr sock_ctx)
+bool IOEventLoopThread::process(SocketBufferContextSPtr sock_ctx)
 {
     std::unique_lock<std::mutex> lk(mMutex);
-    mSocketContexts.push_back(sock_ctx);
+    mSockBufCtxs.push_back(sock_ctx);
+    sock_ctx->setOwner(std::enable_shared_from_this);
     return true;
 }
 
-#if 0
-bool IOEventLoopThread::onInternelReadNotify(SocketContextSPtr sock_ctx, const char* data, size_t len)
+bool IOEventLoopThread::onInternelReadNotify(SocketBufferContextSPtr sock_ctx, const char* data, size_t len)
 {
-    const auto sock_buffer = std::find_if(mSocketContexts.begin(), mSocketContexts.end(),
-            [](const SocketBufferContextSPtr buff) { buff->mSockContext == sock_ctx; });
+    std::unique_lock<std::mutex> lk(mMutex);
+    const auto sock_buffer = std::find_if(mSockBufCtxs.begin(), mSockBufCtxs.end(),
+            [](const SocketBufferContextSPtr buff) { buff == sock_ctx; });
 
-    if (sock_buffer == mSocketContexts.end())
+    if (sock_buffer == mSockBufCtxs.end())
     {
-        CBT_WARN("IOEventLoopThread", "onInternelReadNotify() socket:" << sock_ctx->toString() << " not found in this event loop");
+        CBT_WARN("IOEventLoopThread", "onInternelReadNotify() socket:" << sock_ctx->toString() << " not bind in this event loop");
         return true;
     }
 
     // save the read data from kernel
-    // TODO......
     sock_buffer->storeKernelRB(data, len);
 
-    // notify the read event and try to consume a readEvents or not
-    // TODO......
-    mIOEventsCond.notify()
-}
-
-bool IOEventLoopThread::onInternelWriteNotify(SocketContextSPtr sock_ctx, const char* data, size_t len)
-{
-    // TODO......
-}
-#endif
-
-// can process event: the socket buffer has enough data to consume a read/wirte event
-bool IOEventLoopThread::canProcessEvent(IOEvent event)
-{
-    return true;
-}
-
-bool IOEventLoopThread::preProcessEvent(IOEvent event)
-{
-    return true;
-}
-
-bool IOEventLoopThread::processEvent(IOEvent event)
-{
-    bool process_successed = false;
-    switch(event->type)
+    // check has ready event or not
+    if (!sock_buffer->hasReadyReadEvent())
     {
-        case read:
-            process_successed = processReadEvent(event);
-            break;
-        case write:
-            process_successed = processWriteEvent(event);
-            break;
+        CBT_DEBUG("IOEventLoopThread", "onInternelReadNotify() socket:" << sock_ctx->toString() << " not found ready read event");
+        return true;
     }
 
-    return process_successed;
+    mReadySockBufCtxs.push(sock_buffer);
+
+    // enable the io event thread, parallel to consume the ready io events
+    mReadyEventsCond.notify()
 }
 
-bool IOEventLoopThread::postProcessEvent(IOEvent event)
+bool IOEventLoopThread::onInternelWriteNotify(SocketBufferContextSPtr sock_ctx, const char* data, size_t len)
 {
-    return true;
-}
-
-bool IOEventLoopThread::processReadEvent(IOEvent event)
-{
-    //mExternelReadCompleteCb();
-    return true;
-}
-
-bool IOEventLoopThread::processWriteEvent(IOEvent event)
-{
-    //mExternelWriteCompleteCb();
-    return true;
+    // TODO......
 }
 
 NU_END

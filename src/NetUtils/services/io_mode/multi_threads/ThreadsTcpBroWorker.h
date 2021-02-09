@@ -36,12 +36,16 @@ public:
     void disbaleReadEvent();
     void disbaleWriteEvent();
 
+    // consider call event loop api directly, because if register callback
+    // the event loop thread may be exited when callback triggerd
+    // may be not do this, because code has checked before use
+    // TODO......
     void registerInternelReadCompleteCb(InternelReadCompleteCb cb);
     void registerInternelWriteCompleteCb(InternelWriteCompleteCb cb);
 
 protected:
-    virtual void handleReadEvent(IPV4SocketContextSPtr sock_ctx);
-    virtual void handleWriteEvent(IPV4SocketContextSPtr sock_ctx);
+    virtual void handleReadEvent(SocketBufferContextSPtr sock_buf_ctx, IPV4SocketContextSPtr sock_ctx);
+    virtual void handleWriteEvent(SocketBufferContextSPtr sock_buf_ctx, IPV4SocketContextSPtr sock_ctx);
 
 private:
     bool mIsReadEnabled;
